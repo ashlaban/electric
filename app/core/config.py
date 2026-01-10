@@ -17,5 +17,8 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
+    # Database settings
+    DATABASE_URL: str = "sqlite+aiosqlite:///./electric.db"
+
 
 settings = Settings()

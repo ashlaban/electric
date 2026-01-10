@@ -2,17 +2,21 @@
 
 from fastapi import FastAPI
 
-from app.api.routes import health
+from app.api.routes import health, meters, properties, readings, users
 from app.core.config import settings
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Electric FastAPI application",
+    description="Electric meter reading system API",
 )
 
 # Include routers
 app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(properties.router, prefix="/api")
+app.include_router(meters.router, prefix="/api")
+app.include_router(readings.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 
 
 @app.get("/")

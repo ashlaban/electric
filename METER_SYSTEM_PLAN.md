@@ -41,19 +41,20 @@ A utility meter reading ledger system for tracking electric consumption across p
   - Meter codes must be unique within a property
 
 #### 3. MeterReading (Central Ledger)
-- **Description**: The core data object - immutable ledger of all meter readings
+- **Description**: The core data object - ledger of all meter readings with edit capability
 - **Attributes**:
   - `id`: UUID (primary key)
   - `meter_id`: UUID (foreign key to Meter)
   - `reading_value`: Decimal (the actual meter reading, e.g., 12345.67 kWh)
   - `reading_timestamp`: DateTime (when the reading was physically taken)
   - `created_at`: DateTime (when the record was added to the database)
+  - `updated_at`: DateTime (when the record was last updated)
   - `created_by_user_id`: UUID (foreign key to User, optional)
   - `notes`: String (optional, for any comments about the reading)
 - **Business Rules**:
-  - Readings are immutable (append-only ledger)
+  - Readings can be edited to correct errors (e.g., typos when entering via text)
   - Cannot add readings directly to virtual meters
-  - Reading value must be monotonically increasing for cumulative meters
+  - Reading value must be monotonically increasing for cumulative meters (validated against other readings)
   - `reading_timestamp` must not be in the future
 
 #### 4. User
@@ -74,7 +75,7 @@ A utility meter reading ledger system for tracking electric consumption across p
 ## Database Schema
 
 ### Technology Choice
-- **Database**: PostgreSQL (recommended for production) or SQLite (for development)
+- **Database**: SQLite (using aiosqlite for async support)
 - **ORM**: SQLAlchemy 2.x with async support
 - **Migrations**: Alembic
 
@@ -123,6 +124,8 @@ users (1) ----< (N) meter_readings (created_by)
   - Query params: `start_date`, `end_date`, `limit`, `offset`
 - `GET /api/readings/{reading_id}` - Get specific reading
 - `POST /api/meters/{meter_id}/readings` - Add new reading (only for physical meters)
+- `PATCH /api/readings/{reading_id}` - Update existing reading (for correcting errors)
+- `DELETE /api/readings/{reading_id}` - Delete reading
 - `GET /api/properties/{property_id}/readings` - Get all readings for a property
   - Includes calculated readings for virtual meters
 
@@ -189,8 +192,7 @@ consumption = current_reading - previous_reading
 1. Add dependencies to `pyproject.toml`:
    - SQLAlchemy >= 2.0
    - Alembic >= 1.13
-   - asyncpg (for PostgreSQL) or aiosqlite (for SQLite)
-   - psycopg2-binary (for Alembic migrations)
+   - aiosqlite >= 0.20.0 (for async SQLite support)
 2. Create database configuration in `app/core/config.py`
 3. Set up database connection in `app/core/database.py`
 4. Initialize Alembic for migrations
