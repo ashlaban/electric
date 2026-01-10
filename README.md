@@ -10,6 +10,7 @@ A FastAPI web application built with Python 3.11 and managed by uv.
 - ✅ Pre-configured testing with pytest
 - 🔍 Linting with ruff
 - 🔬 Type checking with ty (Astral)
+- 🪝 Pre-commit hooks for automatic formatting
 - 🛠️ Task automation with poethepoet
 - 🏗️ Modular project structure
 - 🤖 GitHub Actions CI/CD
@@ -49,6 +50,13 @@ cd electric
 ```bash
 uv sync
 ```
+
+3. Install pre-commit hooks (recommended):
+```bash
+uv run poe pre-commit-install
+```
+
+This will automatically run code formatting and linting checks before each commit.
 
 ## Running the Application
 
@@ -130,6 +138,29 @@ Run all checks (lint, format, typecheck, test):
 ```bash
 uv run poe check
 ```
+
+### Pre-commit Hooks
+
+Run pre-commit hooks manually on all files:
+
+```bash
+uv run poe pre-commit
+```
+
+Install pre-commit hooks (if not done during setup):
+
+```bash
+uv run poe pre-commit-install
+```
+
+Once installed, pre-commit will automatically run:
+- Ruff linting (with auto-fix)
+- Ruff formatting
+- Trailing whitespace removal
+- End-of-file fixer
+- YAML validation
+- Large file checks
+- Merge conflict detection
 
 ## Endpoints
 
