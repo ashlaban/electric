@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest"
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run tests
+      run: uv run pytest -v
+
+    - name: Verify app can be imported
+      run: uv run python -c "from app.main import app; print('App imported successfully')"
+
+    - name: Check code formatting with ruff (if available)
+      run: |
+        if uv pip list | grep -q ruff; then
+          uv run ruff check app/ tests/
+        else
+          echo "Ruff not installed, skipping format check"
+        fi
+      continue-on-error: true
