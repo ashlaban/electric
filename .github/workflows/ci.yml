@@ -26,17 +26,14 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
+    - name: Run linting
+      run: uv run poe lint
+
+    - name: Check code formatting
+      run: uv run poe format-check
+
+    - name: Run type checking
+      run: uv run poe typecheck
+
     - name: Run tests
-      run: uv run pytest -v
-
-    - name: Verify app can be imported
-      run: uv run python -c "from app.main import app; print('App imported successfully')"
-
-    - name: Check code formatting with ruff (if available)
-      run: |
-        if uv pip list | grep -q ruff; then
-          uv run ruff check app/ tests/
-        else
-          echo "Ruff not installed, skipping format check"
-        fi
-      continue-on-error: true
+      run: uv run poe test

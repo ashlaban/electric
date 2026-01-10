@@ -16,7 +16,7 @@ app.include_router(health.router, prefix="/api", tags=["health"])
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint."""
     return {
         "message": "Welcome to Electric API",

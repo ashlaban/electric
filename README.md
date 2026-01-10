@@ -8,7 +8,11 @@ A FastAPI web application built with Python 3.11 and managed by uv.
 - 🐍 Python 3.11
 - 📦 Dependency management with uv
 - ✅ Pre-configured testing with pytest
+- 🔍 Linting with ruff
+- 🔬 Type checking with ty (Astral)
+- 🛠️ Task automation with poethepoet
 - 🏗️ Modular project structure
+- 🤖 GitHub Actions CI/CD
 
 ## Project Structure
 
@@ -69,18 +73,62 @@ The API will be available at `http://localhost:8000`
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## Testing
+## Development Commands
 
-Run tests with pytest:
+This project uses [poethepoet](https://poethepoet.natn.io/) for task automation. All commands are defined in `pyproject.toml`.
+
+### Testing
+
+Run tests:
 
 ```bash
-uv run pytest
+uv run poe test
 ```
 
-Run with coverage:
+Run tests with coverage:
 
 ```bash
-uv run pytest --cov=app
+uv run poe test-cov
+```
+
+### Code Quality
+
+Run linting:
+
+```bash
+uv run poe lint
+```
+
+Auto-fix linting issues:
+
+```bash
+uv run poe lint-fix
+```
+
+Check code formatting:
+
+```bash
+uv run poe format-check
+```
+
+Auto-format code:
+
+```bash
+uv run poe format
+```
+
+Run type checking:
+
+```bash
+uv run poe typecheck
+```
+
+### Run All Checks
+
+Run all checks (lint, format, typecheck, test):
+
+```bash
+uv run poe check
 ```
 
 ## Endpoints
@@ -98,18 +146,24 @@ Configuration can be customized using environment variables or a `.env` file:
 - `HOST` - Server host (default: "0.0.0.0")
 - `PORT` - Server port (default: 8000)
 
-## Development
+## Managing Dependencies
 
-### Adding New Dependencies
+Add a new dependency:
 
 ```bash
 uv add <package-name>
 ```
 
-### Adding Dev Dependencies
+Add a dev dependency:
 
 ```bash
 uv add --dev <package-name>
+```
+
+Remove a dependency:
+
+```bash
+uv remove <package-name>
 ```
 
 ## License
