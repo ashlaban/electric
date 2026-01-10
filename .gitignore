@@ -51,3 +51,8 @@ logs/
 
 # uv
 .uv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
