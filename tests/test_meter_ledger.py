@@ -457,3 +457,161 @@ class TestReadingEndpoints:
         assert data["meter_id"] == meter_id
         assert data["total"] == 5
         assert len(data["readings"]) == 5
+
+
+class TestEndToEndWorkflow:
+    """End-to-end integration tests for complete workflows."""
+
+    def test_user_property_meters_readings_workflow(self, client: TestClient) -> None:
+        """
+        Test complete workflow: user creates property, adds submeters, records readings.
+
+        Scenario:
+        - User registers
+        - User creates a property
+        - User adds 2 physical submeters (gg and sg)
+        - User records readings: total=100, gg=30, sg=50
+        - Verify readings are associated with correct meters
+        - Verify read-back shows total=100, gg=30, sg=50, unmetered=20
+        """
+        # Step 1: Create a user
+        user_response = client.post(
+            "/api/auth/register",
+            json={
+                "username": "meter_test_user",
+                "email": "meter_test@example.com",
+                "password": "securepassword123",
+            },
+        )
+        assert user_response.status_code == 201
+        user_data = user_response.json()
+        assert user_data["username"] == "meter_test_user"
+        user_id = user_data["id"]
+
+        # Step 2: Create a property
+        property_response = client.post(
+            "/api/properties/",
+            json={
+                "display_name": "User's Test Property",
+                "address": "123 Integration Test Lane",
+            },
+        )
+        assert property_response.status_code == 201
+        property_data = property_response.json()
+        property_id = property_data["id"]
+        assert property_data["display_name"] == "User's Test Property"
+
+        # Verify property has a main meter auto-created
+        meters_response = client.get(f"/api/properties/{property_id}/meters")
+        assert meters_response.status_code == 200
+        meters = meters_response.json()
+        assert len(meters) == 1
+        main_meter = meters[0]
+        assert main_meter["meter_type"] == MeterType.MAIN_METER
+        main_meter_id = main_meter["id"]
+
+        # Step 3: Associate user with property
+        assoc_response = client.post(f"/api/properties/{property_id}/users/{user_id}")
+        assert assoc_response.status_code == 204
+
+        # Step 4: Add physical submeter "gg"
+        gg_response = client.post(
+            "/api/meters/submeter",
+            json={
+                "property_id": property_id,
+                "sub_meter_kind": SubMeterKind.PHYSICAL,
+                "name": "gg",
+                "location": "Ground floor",
+            },
+        )
+        assert gg_response.status_code == 201
+        gg_meter = gg_response.json()
+        assert gg_meter["name"] == "gg"
+        assert gg_meter["meter_type"] == MeterType.SUB_METER
+        assert gg_meter["sub_meter_kind"] == SubMeterKind.PHYSICAL
+        gg_meter_id = gg_meter["id"]
+
+        # Step 5: Add physical submeter "sg"
+        sg_response = client.post(
+            "/api/meters/submeter",
+            json={
+                "property_id": property_id,
+                "sub_meter_kind": SubMeterKind.PHYSICAL,
+                "name": "sg",
+                "location": "Second floor",
+            },
+        )
+        assert sg_response.status_code == 201
+        sg_meter = sg_response.json()
+        assert sg_meter["name"] == "sg"
+        assert sg_meter["meter_type"] == MeterType.SUB_METER
+        assert sg_meter["sub_meter_kind"] == SubMeterKind.PHYSICAL
+        sg_meter_id = sg_meter["id"]
+
+        # Verify property now has 3 meters (1 main + 2 submeters)
+        meters_response = client.get(f"/api/properties/{property_id}/meters")
+        assert meters_response.status_code == 200
+        meters = meters_response.json()
+        assert len(meters) == 3
+
+        # Step 6: Record readings using bulk endpoint
+        # total=100, gg=30, sg=50
+        reading_timestamp = "2024-02-01T12:00:00Z"
+        bulk_response = client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": reading_timestamp,
+                "main_meter_value": "100.0",
+                "submeter_readings": {
+                    "gg": "30.0",
+                    "sg": "50.0",
+                },
+            },
+        )
+        assert bulk_response.status_code == 201
+        readings_created = bulk_response.json()
+        assert len(readings_created) == 3  # main + gg + sg
+
+        # Verify each reading is associated with the correct meter
+        readings_by_meter = {r["meter_id"]: Decimal(r["value"]) for r in readings_created}
+        assert readings_by_meter[main_meter_id] == Decimal("100.0")
+        assert readings_by_meter[gg_meter_id] == Decimal("30.0")
+        assert readings_by_meter[sg_meter_id] == Decimal("50.0")
+
+        # Step 7: Read back the summary and verify computed unmetered
+        summary_response = client.get(
+            f"/api/readings/property/{property_id}/summary",
+            params={"reading_timestamp": reading_timestamp},
+        )
+        assert summary_response.status_code == 200
+        summary = summary_response.json()
+
+        # Verify main meter reading
+        assert Decimal(summary["main_meter"]) == Decimal("100.0")
+
+        # Verify submeter readings
+        submeter_values = {s["name"]: Decimal(s["value"]) for s in summary["submeters"]}
+        assert submeter_values["gg"] == Decimal("30.0")
+        assert submeter_values["sg"] == Decimal("50.0")
+
+        # Verify computed unmetered: 100 - 30 - 50 = 20
+        assert Decimal(summary["unmetered"]) == Decimal("20.0")
+
+        # Step 8: Also verify via latest readings endpoint
+        latest_response = client.get(f"/api/readings/property/{property_id}/latest")
+        assert latest_response.status_code == 200
+        latest = latest_response.json()
+
+        assert Decimal(latest["main_meter"]) == Decimal("100.0")
+        assert Decimal(latest["unmetered"]) == Decimal("20.0")
+        latest_submeter_values = {s["name"]: Decimal(s["value"]) for s in latest["submeters"]}
+        assert latest_submeter_values["gg"] == Decimal("30.0")
+        assert latest_submeter_values["sg"] == Decimal("50.0")
+
+        # Step 9: Verify individual meter history
+        gg_history_response = client.get(f"/api/readings/meter/{gg_meter_id}/history")
+        assert gg_history_response.status_code == 200
+        gg_history = gg_history_response.json()
+        assert gg_history["total"] == 1
+        assert Decimal(gg_history["readings"][0]["value"]) == Decimal("30.0")
