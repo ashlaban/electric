@@ -24,8 +24,19 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
     is_active: bool
+    phone_number: str | None = None
+    default_property_id: int | None = None
+    default_meter_id: int | None = None
 
     model_config = {"from_attributes": True}
+
+
+class UserPreferencesUpdate(BaseModel):
+    """Schema for updating user meter preferences."""
+
+    phone_number: str | None = None
+    default_property_id: int | None = None
+    default_meter_id: int | None = None
 
 
 class Token(BaseModel):

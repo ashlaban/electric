@@ -4,10 +4,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.routes import auth, health
+from app.api.routes import auth, health, meters, properties, readings
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.models import user  # noqa: F401 - needed for Base.metadata.create_all
+
+# Import models for Base.metadata.create_all - order matters for foreign keys
+from app.models import (
+    associations,  # noqa: F401
+    meter,  # noqa: F401
+    meter_reading,  # noqa: F401
+    property,  # noqa: F401
+    user,  # noqa: F401
+)
 
 
 @asynccontextmanager
@@ -30,6 +38,9 @@ app = FastAPI(
 # Include routers
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(auth.router, prefix="/api")
+app.include_router(properties.router, prefix="/api")
+app.include_router(meters.router, prefix="/api")
+app.include_router(readings.router, prefix="/api")
 
 
 @app.get("/")
