@@ -1,6 +1,6 @@
-# TODO - Electric API Quality of Life Improvements
+# TODO - Electric Project Tasks
 
-This document tracks recommended improvements to enhance the end-user experience of the Electric API.
+This document tracks planned features and improvements for the Electric project.
 
 ---
 
@@ -43,9 +43,32 @@ The `MeterReadingBase` schema accepts any Decimal value for meter readings, incl
 
 ---
 
+### 3. Core Fly.io Deployment Setup
+
+**Description:**
+Set up the foundational deployment infrastructure for Fly.io, enabling the Electric API to run in production with a cost-optimized configuration targeting $2-5/month.
+
+**Recommended Steps:**
+1. Create multi-stage `Dockerfile` using `uv` package manager and `python:3.11-slim` base
+2. Create `.dockerignore` to exclude unnecessary files from the Docker image
+3. Create `fly.toml` with auto-stop, health checks, and cost-optimized VM settings
+4. Modify `app/core/config.py` to auto-detect Fly Volumes path for SQLite database
+5. Test local Docker build: `docker build -t electric .`
+6. Run Fly.io initial setup: `fly launch --no-deploy`
+7. Create Fly Volume: `fly volumes create electric_data --region iad --size 1`
+8. Set production secrets: `fly secrets set SECRET_KEY="$(openssl rand -hex 32)"`
+9. Deploy and verify: `fly deploy && fly status`
+
+**Effort:** Low (2-3 hours)
+**Impact:** High - Enables production deployment with minimal cost. Blocking for all other deployment-related tasks.
+
+**Reference:** See `docs/FLYIO_INTEGRATION_PLAN.md` for detailed implementation specifications.
+
+---
+
 ## High Priority
 
-### 3. Add Pagination Metadata to List Endpoints
+### 4. Add Pagination Metadata to List Endpoints
 
 **Description:**
 `GET /api/properties/` returns a plain list with no total count. Frontend applications cannot display "Page 1 of 10" or determine when to stop paginating.
@@ -69,7 +92,7 @@ The `MeterReadingBase` schema accepts any Decimal value for meter readings, incl
 
 ---
 
-### 4. Add Search and Filter Capabilities
+### 5. Add Search and Filter Capabilities
 
 **Description:**
 Users cannot search properties by name or filter meters by type/kind. As data grows, finding specific resources becomes increasingly difficult.
@@ -91,7 +114,7 @@ Users cannot search properties by name or filter meters by type/kind. As data gr
 
 ---
 
-### 5. Add User Profile Management Endpoints
+### 6. Add User Profile Management Endpoints
 
 **Description:**
 Users can register but cannot view or update their profile, change their password, or set preferences. The `User` model has `default_property_id` and `default_meter_id` fields that are inaccessible.
@@ -113,7 +136,7 @@ Users can register but cannot view or update their profile, change their passwor
 
 ---
 
-### 6. Add Date Range Queries for Readings
+### 7. Add Date Range Queries for Readings
 
 **Description:**
 Current API only supports getting readings at an exact timestamp or the latest readings. Users cannot query readings within a date range, which is essential for reporting and analysis.
@@ -133,9 +156,28 @@ Current API only supports getting readings at an exact timestamp or the latest r
 
 ---
 
+### 8. Automated Deployment Pipeline (CI/CD)
+
+**Description:**
+Set up GitHub Actions workflow to automatically test and deploy the application to Fly.io when changes are pushed to the main branch.
+
+**Recommended Steps:**
+1. Create `.github/workflows/deploy.yml` with test and deploy jobs
+2. Generate Fly.io deploy token: `fly tokens create deploy`
+3. Add `FLY_API_TOKEN` secret to GitHub repository settings
+4. Test pipeline by pushing a commit to main branch
+5. Verify deployment completes successfully
+
+**Effort:** Low (1-2 hours)
+**Impact:** Medium-High - Enables continuous deployment, reduces manual deployment overhead, ensures all deployments pass tests.
+
+**Dependencies:** Core Fly.io Deployment must be completed first.
+
+---
+
 ## Medium Priority
 
-### 7. Add Soft Delete Endpoints
+### 9. Add Soft Delete Endpoints
 
 **Description:**
 Models have `is_active` fields but there's no API to deactivate entities. Users must either leave orphaned data or request database-level deletion.
@@ -153,7 +195,7 @@ Models have `is_active` fields but there's no API to deactivate entities. Users 
 
 ---
 
-### 8. Normalize Empty Result Responses
+### 10. Normalize Empty Result Responses
 
 **Description:**
 `get_property_reading_summary` returns `None` for properties with no readings, which requires special handling by clients. Inconsistent empty states complicate frontend development.
@@ -178,7 +220,7 @@ Models have `is_active` fields but there's no API to deactivate entities. Users 
 
 ---
 
-### 9. Add Data Export Capabilities
+### 11. Add Data Export Capabilities
 
 **Description:**
 Users cannot download readings for offline analysis in spreadsheet applications. Export functionality is commonly expected for utility data.
@@ -198,7 +240,7 @@ Users cannot download readings for offline analysis in spreadsheet applications.
 
 ---
 
-### 10. Add Dashboard Summary Endpoint
+### 12. Add Dashboard Summary Endpoint
 
 **Description:**
 Users must make multiple API calls to get an overview of their account. A dashboard endpoint would improve initial load performance and user experience.
@@ -226,27 +268,34 @@ Users must make multiple API calls to get an overview of their account. A dashbo
 
 ---
 
-## Low Priority
-
-### 11. Add Rate Limiting
+### 13. Production Security and Monitoring
 
 **Description:**
-No rate limiting exists, making the API vulnerable to abuse and potential denial of service. Production deployments should limit requests per user/IP.
+Add security measures and monitoring capabilities to make the deployment production-ready for real users.
 
 **Recommended Steps:**
-1. Add `slowapi` or `fastapi-limiter` dependency
-2. Configure default limits (e.g., 100 requests/minute per user)
-3. Add stricter limits on expensive operations (export, bulk create)
-4. Return standard 429 Too Many Requests with Retry-After header
-5. Consider Redis backend for distributed deployments
-6. Add configuration options in `Settings`
+1. Add rate limiting using `slowapi` package
+   - Install: `uv add slowapi`
+   - Configure limits per endpoint (e.g., 100 requests/minute for auth)
+2. Configure CORS middleware for frontend domain
+   - Update `app/main.py` with `CORSMiddleware`
+3. Set up error monitoring with Sentry
+   - Install: `uv add sentry-sdk[fastapi]`
+   - Configure DSN via `fly secrets set SENTRY_DSN="..."`
+4. Add structured request logging
+   - Consider `structlog` for JSON logging
+5. Test security measures locally before deploying
 
-**Effort:** Medium (1 day)
-**Impact:** Low-Medium - Important for production but not user-facing feature
+**Effort:** Low (1-2 hours)
+**Impact:** Medium - Improves security posture and observability. Important for production use.
+
+**Dependencies:** Core Fly.io Deployment should be completed first.
 
 ---
 
-### 12. Add Request ID Tracking
+## Low Priority
+
+### 14. Add Request ID Tracking
 
 **Description:**
 No correlation IDs exist for tracking requests through logs. Makes debugging and support requests difficult.
@@ -263,7 +312,7 @@ No correlation IDs exist for tracking requests through logs. Makes debugging and
 
 ---
 
-### 13. Explicit Timezone Handling
+### 15. Explicit Timezone Handling
 
 **Description:**
 `reading_timestamp` accepts naive datetimes without timezone information. This can cause confusion and data inconsistencies for multi-timezone deployments.
@@ -280,7 +329,30 @@ No correlation IDs exist for tracking requests through logs. Makes debugging and
 
 ---
 
-### 14. Add Webhook/Event System
+### 16. Deployment Documentation
+
+**Description:**
+Update project documentation to include deployment instructions, environment variable reference, and troubleshooting guide.
+
+**Recommended Steps:**
+1. Update `README.md` with deployment section
+   - Quick start commands for Fly.io
+   - Link to detailed plan document
+2. Document all environment variables in a table format
+   - Required vs optional
+   - Production vs development defaults
+3. Add troubleshooting guide for common issues
+   - Database connection errors
+   - Health check failures
+   - Volume mounting issues
+4. Add architecture diagram showing Fly.io components
+
+**Effort:** Low (30 minutes - 1 hour)
+**Impact:** Low-Medium - Improves developer experience and reduces onboarding time.
+
+---
+
+### 17. Add Webhook/Event System
 
 **Description:**
 Users cannot be notified when readings are submitted or when anomalies are detected. Webhooks enable integrations with external systems.
@@ -299,25 +371,82 @@ Users cannot be notified when readings are submitted or when anomalies are detec
 
 ---
 
-## Summary
+## Future Enhancements
 
-| Priority | Task | Effort | Impact |
-|----------|------|--------|--------|
-| Critical | Auth enforcement on endpoints | Medium | High |
-| Critical | Value validation on readings | Low | High |
-| High | Pagination metadata on lists | Low | High |
-| High | Search/filter capabilities | Medium | High |
-| High | User profile endpoints | Medium | High |
-| High | Date range queries | Medium | High |
-| Medium | Soft delete endpoints | Low | Medium |
-| Medium | Normalize empty responses | Low | Medium |
-| Medium | Data export capabilities | Medium | Medium |
-| Medium | Dashboard summary endpoint | Medium | Medium |
-| Low | Rate limiting | Medium | Low-Medium |
-| Low | Request ID tracking | Low | Low |
-| Low | Explicit timezone handling | Medium | Low |
-| Low | Webhook/event system | High | Low-Medium |
+### 18. SQLite to Postgres Migration Path
+
+**Description:**
+When the application outgrows SQLite (write contention, need for replicas), migrate to Fly Postgres.
+
+**Recommended Steps:**
+1. Create Fly Postgres cluster: `fly postgres create --name electric-db`
+2. Write data migration script (SQLite → Postgres)
+3. Attach database to app: `fly postgres attach electric-db`
+4. Update SQLAlchemy models for Postgres compatibility (if needed)
+5. Test thoroughly in staging environment
+6. Execute migration during low-traffic period
+
+**Effort:** Medium (3-4 hours)
+**Impact:** Medium - Enables horizontal scaling and higher write throughput. Only needed when traffic justifies the additional ~$15/month cost.
+
+**Trigger Conditions:**
+- SQLite write contention observed
+- Need for read replicas
+- Traffic exceeds single-instance capacity
 
 ---
 
-*Last updated: 2024-01-25*
+### 19. Multi-Region Deployment
+
+**Description:**
+Deploy to multiple Fly.io regions for lower latency and higher availability.
+
+**Recommended Steps:**
+1. Identify target regions based on user distribution
+2. Scale to multiple machines: `fly scale count 2 --region iad,lhr`
+3. If using Postgres, configure read replicas in each region
+4. Update health checks for multi-region awareness
+5. Monitor latency improvements
+
+**Effort:** Medium (2-3 hours)
+**Impact:** Low-Medium - Improves latency for geographically distributed users. Increases cost proportionally.
+
+**Dependencies:** Core deployment and CI/CD must be completed. Consider after validating single-region performance.
+
+---
+
+## Summary
+
+| # | Task | Priority | Effort | Impact |
+|---|------|----------|--------|--------|
+| 1 | Auth enforcement on endpoints | Critical | Medium | High |
+| 2 | Value validation on readings | Critical | Low | High |
+| 3 | Core Fly.io deployment | Critical | Low | High |
+| 4 | Pagination metadata on lists | High | Low | High |
+| 5 | Search/filter capabilities | High | Medium | High |
+| 6 | User profile endpoints | High | Medium | High |
+| 7 | Date range queries | High | Medium | High |
+| 8 | CI/CD pipeline | High | Low | Medium-High |
+| 9 | Soft delete endpoints | Medium | Low | Medium |
+| 10 | Normalize empty responses | Medium | Low | Medium |
+| 11 | Data export capabilities | Medium | Medium | Medium |
+| 12 | Dashboard summary endpoint | Medium | Medium | Medium |
+| 13 | Production hardening | Medium | Low | Medium |
+| 14 | Request ID tracking | Low | Low | Low |
+| 15 | Explicit timezone handling | Low | Medium | Low |
+| 16 | Deployment documentation | Low | Low | Low-Medium |
+| 17 | Webhook/event system | Low | High | Low-Medium |
+| 18 | Postgres migration | Future | Medium | Medium |
+| 19 | Multi-region deployment | Future | Medium | Low-Medium |
+
+---
+
+## Notes
+
+- All effort estimates assume familiarity with the codebase and tools
+- Fly.io costs are estimated at $2-5/month for the recommended configuration
+- See `docs/FLYIO_INTEGRATION_PLAN.md` for detailed Fly.io implementation specifications
+
+---
+
+*Last updated: 2025-01-26*
