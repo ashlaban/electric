@@ -22,10 +22,15 @@ electric/
 ├── app/
 │   ├── api/
 │   │   └── routes/         # API route handlers
-│   │       └── health.py   # Health check endpoint
+│   │       ├── auth.py     # Authentication endpoints
+│   │       ├── health.py   # Health check endpoint
+│   │       ├── meters.py   # Meter management endpoints
+│   │       ├── properties.py # Property management endpoints
+│   │       └── readings.py # Meter reading endpoints
 │   ├── core/
 │   │   └── config.py       # Application configuration
-│   ├── models/             # Pydantic models
+│   ├── models/             # SQLAlchemy models
+│   ├── schemas/            # Pydantic schemas
 │   ├── services/           # Business logic
 │   └── main.py             # FastAPI application entry point
 ├── tests/                  # Test suite
@@ -162,10 +167,37 @@ Once installed, pre-commit will automatically run:
 - Large file checks
 - Merge conflict detection
 
-## Endpoints
+## API Endpoints
 
+### General
 - `GET /` - Root endpoint with welcome message
 - `GET /api/health` - Health check endpoint
+
+### Authentication (`/api/auth`)
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login and receive a JWT access token
+
+### Properties (`/api/properties`)
+- `POST /api/properties/` - Create a new property with its main meter
+- `GET /api/properties/` - List all properties (with pagination)
+- `GET /api/properties/{property_id}` - Get a property by ID
+- `PATCH /api/properties/{property_id}` - Update a property
+- `GET /api/properties/{property_id}/meters` - Get all meters for a property
+- `POST /api/properties/{property_id}/users/{user_id}` - Associate a user with a property
+- `DELETE /api/properties/{property_id}/users/{user_id}` - Remove user association
+
+### Meters (`/api/meters`)
+- `POST /api/meters/main` - Create a main meter for a property
+- `POST /api/meters/submeter` - Create a submeter for a property
+- `GET /api/meters/{meter_id}` - Get a meter by ID
+- `PATCH /api/meters/{meter_id}` - Update a meter
+
+### Meter Readings (`/api/readings`)
+- `POST /api/readings/` - Record a single meter reading
+- `POST /api/readings/bulk` - Record multiple meter readings at once
+- `GET /api/readings/property/{property_id}/summary` - Get readings at a specific timestamp
+- `GET /api/readings/property/{property_id}/latest` - Get most recent readings
+- `GET /api/readings/meter/{meter_id}/history` - Get reading history (with pagination)
 
 ## Configuration
 
