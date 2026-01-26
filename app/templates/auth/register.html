@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Electric{% endblock %}
+
+{% block content %}
+<article class="auth-card">
+    <header>
+        <h1>Create Account</h1>
+    </header>
+
+    <form method="post" action="/register">
+        <label for="username">
+            Username
+            <input type="text" id="username" name="username" value="{{ username|default('') }}"
+                   placeholder="Choose a username" required autofocus
+                   {% if errors and errors.username %}aria-invalid="true"{% endif %}>
+            {% if errors and errors.username %}
+                <small class="error">{{ errors.username }}</small>
+            {% endif %}
+        </label>
+
+        <label for="email">
+            Email
+            <input type="email" id="email" name="email" value="{{ email|default('') }}"
+                   placeholder="Enter your email" required
+                   {% if errors and errors.email %}aria-invalid="true"{% endif %}>
+            {% if errors and errors.email %}
+                <small class="error">{{ errors.email }}</small>
+            {% endif %}
+        </label>
+
+        <label for="password">
+            Password
+            <input type="password" id="password" name="password"
+                   placeholder="Choose a password (min 8 characters)" required
+                   {% if errors and errors.password %}aria-invalid="true"{% endif %}>
+            {% if errors and errors.password %}
+                <small class="error">{{ errors.password }}</small>
+            {% endif %}
+        </label>
+
+        <label for="password_confirm">
+            Confirm Password
+            <input type="password" id="password_confirm" name="password_confirm"
+                   placeholder="Confirm your password" required
+                   {% if errors and errors.password_confirm %}aria-invalid="true"{% endif %}>
+            {% if errors and errors.password_confirm %}
+                <small class="error">{{ errors.password_confirm }}</small>
+            {% endif %}
+        </label>
+
+        <button type="submit">Create Account</button>
+    </form>
+
+    <footer>
+        <p>Already have an account? <a href="/login">Login here</a></p>
+    </footer>
+</article>
+{% endblock %}

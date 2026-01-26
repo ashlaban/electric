@@ -8,13 +8,12 @@ client = TestClient(app)
 
 
 def test_root_endpoint():
-    """Test root endpoint returns welcome message."""
+    """Test root endpoint returns landing page HTML."""
     response = client.get("/")
     assert response.status_code == 200
-    data = response.json()
-    assert "message" in data
-    assert "version" in data
-    assert data["message"] == "Welcome to Electric API"
+    assert "text/html" in response.headers["content-type"]
+    assert "Electric" in response.text
+    assert "Meter Reading Tracker" in response.text
 
 
 def test_health_check():

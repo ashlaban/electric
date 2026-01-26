@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Electric - Meter Reading Tracker{% endblock %}
+
+{% block content %}
+{% if not user %}
+    {# Landing page for non-authenticated users #}
+    <section class="hero">
+        <hgroup>
+            <h1>Electric</h1>
+            <p>Simple meter reading tracking for your properties</p>
+        </hgroup>
+
+        <div class="grid">
+            <article>
+                <h3>Track Readings</h3>
+                <p>Record electricity meter readings for all your properties in one place.</p>
+            </article>
+            <article>
+                <h3>Multiple Meters</h3>
+                <p>Support for main meters and submeters, with automatic unmetered calculation.</p>
+            </article>
+            <article>
+                <h3>Quick Entry</h3>
+                <p>Set up defaults for one-tap reading entry from any device.</p>
+            </article>
+        </div>
+
+        <p class="cta">
+            <a href="/register" role="button">Get Started</a>
+            <a href="/login" role="button" class="outline">Login</a>
+        </p>
+    </section>
+
+{% else %}
+    {# Quick reading entry for authenticated users with defaults set #}
+    <section class="quick-entry">
+        <hgroup>
+            <h1>Quick Reading</h1>
+            <p>
+                {{ property.display_name }} &mdash;
+                {% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}
+            </p>
+        </hgroup>
+
+        {% if latest_reading and latest_reading.main_meter %}
+            <p class="last-reading">
+                Last reading: <strong>{{ latest_reading.main_meter }}</strong>
+                <small>({{ latest_reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }})</small>
+            </p>
+        {% endif %}
+
+        <form method="post" action="/quick-reading" class="quick-form">
+            <fieldset role="group">
+                <input type="number" name="value" step="0.01" placeholder="Enter reading"
+                       required autofocus inputmode="decimal" class="large-input">
+                <button type="submit">Submit</button>
+            </fieldset>
+        </form>
+
+        <nav class="quick-links">
+            <a href="/readings/create">Add detailed reading</a>
+            <a href="/readings/bulk?property_id={{ property.id }}">Bulk entry</a>
+            <a href="/dashboard">View dashboard</a>
+        </nav>
+    </section>
+{% endif %}
+{% endblock %}

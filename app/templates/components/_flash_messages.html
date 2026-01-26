@@ -1,0 +1,6 @@
+{% set messages = request.session.pop('flash_messages', []) %}
+{% for msg in messages %}
+    <article class="flash-message flash-{{ msg.category }}">
+        {{ msg.message }}
+    </article>
+{% endfor %}

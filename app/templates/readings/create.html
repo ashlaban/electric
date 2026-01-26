@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Add Reading - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Add Reading</h1>
+    <p>Record a single meter reading.</p>
+</hgroup>
+
+<article>
+    <form method="post" action="/readings/create">
+        <label for="property_select">
+            Property
+            <select id="property_select" name="property_select" onchange="updateMeters()">
+                <option value="">Select a property</option>
+                {% for prop in properties %}
+                    <option value="{{ prop.id }}"
+                            {% if selected_property_id == prop.id %}selected{% endif %}>
+                        {{ prop.display_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label for="meter_id">
+            Meter
+            <select id="meter_id" name="meter_id" required>
+                <option value="">Select a meter</option>
+                {% for prop_id, meters in meters_by_property.items() %}
+                    {% for meter in meters %}
+                        <option value="{{ meter.id }}"
+                                data-property="{{ prop_id }}"
+                                {% if selected_meter_id == meter.id %}selected{% endif %}>
+                            {% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}
+                        </option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </label>
+
+        <label for="value">
+            Reading Value
+            <input type="number" id="value" name="value" step="0.01"
+                   placeholder="Enter meter reading" required autofocus inputmode="decimal">
+        </label>
+
+        <label for="reading_date">
+            Date & Time (optional)
+            <input type="datetime-local" id="reading_date" name="reading_date">
+            <small>Leave empty for current time</small>
+        </label>
+
+        <button type="submit">Save Reading</button>
+    </form>
+</article>
+
+<p><a href="/readings">&larr; Back to Readings</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateMeters() {
+    const propertySelect = document.getElementById('property_select');
+    const meterSelect = document.getElementById('meter_id');
+    const selectedProperty = propertySelect.value;
+
+    // Show/hide meter options based on property
+    Array.from(meterSelect.options).forEach(option => {
+        if (option.value === '') {
+            option.style.display = '';
+        } else if (selectedProperty === '' || option.dataset.property === selectedProperty) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+
+    // Reset meter selection if current selection is hidden
+    const currentOption = meterSelect.options[meterSelect.selectedIndex];
+    if (currentOption && currentOption.style.display === 'none') {
+        meterSelect.value = '';
+    }
+}
+
+// Initial filter on page load
+document.addEventListener('DOMContentLoaded', updateMeters);
+</script>
+{% endblock %}

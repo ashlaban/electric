@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Readings - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Readings</h1>
+    <p>View all meter readings</p>
+</hgroup>
+
+<div class="grid">
+    <div>
+        <a href="/readings/create" role="button">Add Reading</a>
+        <a href="/readings/bulk" role="button" class="outline">Bulk Entry</a>
+    </div>
+    <div>
+        <form method="get" action="/readings">
+            <fieldset role="group">
+                <select name="meter_id" onchange="this.form.submit()">
+                    <option value="">All Meters</option>
+                    {% for item in meters %}
+                        <option value="{{ item.meter.id }}"
+                                {% if selected_meter_id == item.meter.id %}selected{% endif %}>
+                            {{ item.property.display_name }} - {% if item.meter.name %}{{ item.meter.name }}{% else %}Main{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Filter</button>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+{% if readings %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Property</th>
+                    <th>Meter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in readings %}
+                    <tr>
+                        <td>{{ item.reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/properties/{{ item.property.id }}">{{ item.property.display_name }}</a>
+                        </td>
+                        <td>
+                            <a href="/meters/{{ item.meter.id }}">
+                                {% if item.meter.name %}{{ item.meter.name }}{% else %}Main{% endif %}
+                            </a>
+                        </td>
+                        <td><strong>{{ item.reading.value }}</strong></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+
+    <p><small>Showing {{ readings|length }} of {{ total }} readings</small></p>
+{% else %}
+    <article>
+        <p>No readings found{% if selected_meter_id %} for this meter{% endif %}.</p>
+        <a href="/readings/create" role="button" class="outline">Add First Reading</a>
+    </article>
+{% endif %}
+{% endblock %}

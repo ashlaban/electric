@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meter.name or 'Main Meter' }} - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>{% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}</h1>
+    <p>
+        <a href="/properties/{{ property.id }}">{{ property.display_name }}</a>
+        {% if meter.meter_type.value == 'main_meter' %}
+            &mdash; <mark>Main Meter</mark>
+        {% else %}
+            &mdash; {{ meter.sub_meter_kind.value|title if meter.sub_meter_kind else 'Submeter' }}
+        {% endif %}
+    </p>
+</hgroup>
+
+{% if meter.location %}
+    <p><strong>Location:</strong> {{ meter.location }}</p>
+{% endif %}
+
+<p>
+    <a href="/readings/create?meter_id={{ meter.id }}" role="button">Add Reading</a>
+    {% if meter.meter_type.value != 'main_meter' %}
+        <a href="/meters/{{ meter.id }}/edit" role="button" class="outline">Edit Meter</a>
+    {% endif %}
+</p>
+
+<h2>Recent Readings</h2>
+
+{% if readings %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reading in readings %}
+                    <tr>
+                        <td>{{ reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ reading.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+
+    {% if total_readings > 10 %}
+        <p><a href="/readings/meter/{{ meter.id }}/history">View all {{ total_readings }} readings &rarr;</a></p>
+    {% endif %}
+{% else %}
+    <article>
+        <p>No readings recorded yet.</p>
+        <a href="/readings/create?meter_id={{ meter.id }}" role="button" class="outline">Add First Reading</a>
+    </article>
+{% endif %}
+
+{% if meter.meter_type.value != 'main_meter' %}
+    <hr>
+    <details>
+        <summary>Delete Meter</summary>
+        <form method="post" action="/meters/{{ meter.id }}/delete"
+              onsubmit="return confirm('Are you sure you want to delete this meter? All readings for this meter will also be deleted.');">
+            <p class="error">Warning: This action cannot be undone.</p>
+            <button type="submit" class="secondary">Delete Meter</button>
+        </form>
+    </details>
+{% endif %}
+{% endblock %}

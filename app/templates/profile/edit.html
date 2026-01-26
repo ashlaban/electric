@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Edit Profile</h1>
+    {% if setup_defaults %}
+        <p>Set your defaults for quick meter reading entry.</p>
+    {% else %}
+        <p>Update your profile settings</p>
+    {% endif %}
+</hgroup>
+
+<article>
+    <form method="post" action="/profile/edit">
+        <label for="phone_number">
+            Phone Number (optional)
+            <input type="tel" id="phone_number" name="phone_number"
+                   value="{{ user.phone_number or '' }}"
+                   placeholder="e.g., +1 555-123-4567">
+        </label>
+
+        <hr>
+        <p><strong>Quick Entry Defaults</strong></p>
+        <small>Set these to enable one-tap reading entry from the home page.</small>
+
+        <label for="default_property_id">
+            Default Property
+            <select id="default_property_id" name="default_property_id" onchange="updateDefaultMeters()">
+                <option value="">None</option>
+                {% for prop in properties %}
+                    <option value="{{ prop.id }}"
+                            {% if user.default_property_id == prop.id %}selected{% endif %}>
+                        {{ prop.display_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label for="default_meter_id">
+            Default Meter
+            <select id="default_meter_id" name="default_meter_id">
+                <option value="">None</option>
+                {% for prop_id, meters in meters_by_property.items() %}
+                    {% for meter in meters %}
+                        <option value="{{ meter.id }}"
+                                data-property="{{ prop_id }}"
+                                {% if user.default_meter_id == meter.id %}selected{% endif %}>
+                            {% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}
+                        </option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="grid">
+            <button type="submit">Save Changes</button>
+            <a href="/profile" role="button" class="secondary">Cancel</a>
+        </div>
+    </form>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateDefaultMeters() {
+    const propertySelect = document.getElementById('default_property_id');
+    const meterSelect = document.getElementById('default_meter_id');
+    const selectedProperty = propertySelect.value;
+
+    // Show/hide meter options based on property
+    Array.from(meterSelect.options).forEach(option => {
+        if (option.value === '') {
+            option.style.display = '';
+        } else if (selectedProperty === '' || option.dataset.property === selectedProperty) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+
+    // Reset meter selection if current selection is hidden
+    const currentOption = meterSelect.options[meterSelect.selectedIndex];
+    if (currentOption && currentOption.value && currentOption.style.display === 'none') {
+        meterSelect.value = '';
+    }
+}
+
+// Initial filter on page load
+document.addEventListener('DOMContentLoaded', updateDefaultMeters);
+</script>
+{% endblock %}

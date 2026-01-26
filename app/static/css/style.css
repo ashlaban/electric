@@ -1,0 +1,135 @@
+/* Electric - Custom Styles */
+
+/* Brand styling */
+.brand {
+    text-decoration: none;
+    font-size: 1.25rem;
+}
+
+/* Auth card styling */
+.auth-card {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+/* Hero section for landing page */
+.hero {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.hero .cta {
+    margin-top: 2rem;
+}
+
+.hero .cta a {
+    margin: 0 0.5rem;
+}
+
+/* Quick entry section */
+.quick-entry {
+    max-width: 500px;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.quick-entry .last-reading {
+    color: var(--muted-color);
+    margin-bottom: 1.5rem;
+}
+
+.quick-form input.large-input {
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 1rem;
+}
+
+.quick-links {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.quick-links a {
+    font-size: 0.9rem;
+}
+
+/* Stats styling */
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: var(--primary);
+}
+
+/* Flash messages */
+.flash-message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+}
+
+.flash-success {
+    background-color: var(--ins-color);
+    border-left: 4px solid var(--primary);
+}
+
+.flash-error {
+    background-color: var(--del-color);
+    border-left: 4px solid var(--form-element-invalid-border-color);
+}
+
+.flash-info {
+    background-color: var(--code-background-color);
+    border-left: 4px solid var(--secondary);
+}
+
+/* Error text */
+.error {
+    color: var(--form-element-invalid-border-color);
+}
+
+small.error {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Text colors */
+.text-success {
+    color: var(--ins-color);
+}
+
+.text-warning {
+    color: var(--form-element-invalid-border-color);
+}
+
+/* Pagination */
+.pagination ul {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination .disabled {
+    color: var(--muted-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .quick-links {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

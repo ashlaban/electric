@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Meters - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Meters</h1>
+    <p>View and manage all meters</p>
+</hgroup>
+
+<div class="grid">
+    <div>
+        <a href="/meters/create" role="button">Add Submeter</a>
+    </div>
+    <div>
+        <form method="get" action="/meters">
+            <fieldset role="group">
+                <select name="property_id" onchange="this.form.submit()">
+                    <option value="">All Properties</option>
+                    {% for prop in properties %}
+                        <option value="{{ prop.id }}"
+                                {% if selected_property_id == prop.id %}selected{% endif %}>
+                            {{ prop.display_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Filter</button>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+{% if meters %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in meters %}
+                    <tr>
+                        <td>
+                            <a href="/meters/{{ item.meter.id }}">
+                                {% if item.meter.name %}{{ item.meter.name }}{% else %}Main Meter{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="/properties/{{ item.property.id }}">{{ item.property.display_name }}</a>
+                        </td>
+                        <td>
+                            {% if item.meter.meter_type.value == 'main_meter' %}
+                                <mark>Main</mark>
+                            {% else %}
+                                {{ item.meter.sub_meter_kind.value|title if item.meter.sub_meter_kind else 'Sub' }}
+                            {% endif %}
+                        </td>
+                        <td>{{ item.meter.location or '-' }}</td>
+                        <td>
+                            <a href="/meters/{{ item.meter.id }}">View</a>
+                            {% if item.meter.meter_type.value != 'main_meter' %}
+                                | <a href="/meters/{{ item.meter.id }}/edit">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+{% else %}
+    <article>
+        <p>No meters found{% if selected_property_id %} for this property{% endif %}.</p>
+    </article>
+{% endif %}
+{% endblock %}

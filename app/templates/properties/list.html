@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Properties - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Properties</h1>
+    <p>Manage your properties and meters</p>
+</hgroup>
+
+<p><a href="/properties/create" role="button">Add Property</a></p>
+
+{% if properties %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Meters</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in properties %}
+                    <tr>
+                        <td>
+                            <a href="/properties/{{ item.property.id }}">
+                                {{ item.property.display_name }}
+                            </a>
+                        </td>
+                        <td>{{ item.property.address or '-' }}</td>
+                        <td>{{ item.meters_count }}</td>
+                        <td>
+                            <a href="/properties/{{ item.property.id }}/edit">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+{% else %}
+    <article>
+        <p>You don't have any properties yet.</p>
+        <a href="/properties/create" role="button">Add Your First Property</a>
+    </article>
+{% endif %}
+{% endblock %}

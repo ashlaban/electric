@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Profile</h1>
+    <p>Your account information</p>
+</hgroup>
+
+<article>
+    <dl>
+        <dt>Username</dt>
+        <dd>{{ user.username }}</dd>
+
+        <dt>Email</dt>
+        <dd>{{ user.email }}</dd>
+
+        <dt>Phone Number</dt>
+        <dd>{{ user.phone_number or 'Not set' }}</dd>
+
+        <dt>Default Property</dt>
+        <dd>
+            {% if user.default_property %}
+                <a href="/properties/{{ user.default_property.id }}">{{ user.default_property.display_name }}</a>
+            {% else %}
+                Not set
+            {% endif %}
+        </dd>
+
+        <dt>Default Meter</dt>
+        <dd>
+            {% if user.default_meter %}
+                <a href="/meters/{{ user.default_meter.id }}">
+                    {% if user.default_meter.name %}{{ user.default_meter.name }}{% else %}Main Meter{% endif %}
+                </a>
+            {% else %}
+                Not set
+            {% endif %}
+        </dd>
+
+        <dt>Member Since</dt>
+        <dd>{{ user.created_at.strftime('%Y-%m-%d') }}</dd>
+    </dl>
+
+    <footer>
+        <a href="/profile/edit" role="button">Edit Profile</a>
+        <a href="/profile/change-password" role="button" class="outline">Change Password</a>
+    </footer>
+</article>
+{% endblock %}
