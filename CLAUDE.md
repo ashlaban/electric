@@ -23,10 +23,16 @@ electric/
 │   ├── main.py             # FastAPI app entry point
 │   ├── api/
 │   │   └── routes/
-│   │       └── health.py   # Health check endpoints
+│   │       ├── auth.py     # Authentication endpoints
+│   │       ├── health.py   # Health check endpoints
+│   │       ├── meters.py   # Meter management endpoints
+│   │       ├── properties.py # Property management endpoints
+│   │       └── readings.py # Meter reading endpoints
 │   ├── core/
-│   │   └── config.py       # Settings management (pydantic-settings)
-│   ├── models/             # Pydantic models (data schemas)
+│   │   ├── config.py       # Settings management (pydantic-settings)
+│   │   └── database.py     # Database connection and session
+│   ├── models/             # SQLAlchemy ORM models
+│   ├── schemas/            # Pydantic schemas (request/response)
 │   └── services/           # Business logic layer
 ├── tests/
 │   └── test_main.py        # Integration tests
@@ -107,12 +113,47 @@ Settings can be overridden via environment variables or `.env` file.
 
 ## API Endpoints
 
+### General
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/` | Root - welcome message |
 | GET | `/api/health` | Health check |
 | GET | `/docs` | Swagger UI |
 | GET | `/redoc` | ReDoc documentation |
+
+### Authentication (`/api/auth`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login, receive JWT token |
+
+### Properties (`/api/properties`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/properties/` | Create property with main meter |
+| GET | `/api/properties/` | List all properties (paginated) |
+| GET | `/api/properties/{id}` | Get property by ID |
+| PATCH | `/api/properties/{id}` | Update property |
+| GET | `/api/properties/{id}/meters` | Get property's meters |
+| POST | `/api/properties/{id}/users/{user_id}` | Associate user |
+| DELETE | `/api/properties/{id}/users/{user_id}` | Remove user association |
+
+### Meters (`/api/meters`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/meters/main` | Create main meter |
+| POST | `/api/meters/submeter` | Create submeter |
+| GET | `/api/meters/{id}` | Get meter by ID |
+| PATCH | `/api/meters/{id}` | Update meter |
+
+### Meter Readings (`/api/readings`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/readings/` | Record single reading |
+| POST | `/api/readings/bulk` | Record multiple readings |
+| GET | `/api/readings/property/{id}/summary` | Get readings at timestamp |
+| GET | `/api/readings/property/{id}/latest` | Get latest readings |
+| GET | `/api/readings/meter/{id}/history` | Get reading history (paginated) |
 
 ## Development Workflow
 
@@ -141,8 +182,9 @@ Settings can be overridden via environment variables or `.env` file.
 
 - **Routes** (`app/api/routes/`): HTTP endpoint handlers, thin layer
 - **Services** (`app/services/`): Business logic, reusable across routes
-- **Models** (`app/models/`): Pydantic schemas for request/response validation
-- **Core** (`app/core/`): Configuration, shared utilities
+- **Models** (`app/models/`): SQLAlchemy ORM models for database tables
+- **Schemas** (`app/schemas/`): Pydantic schemas for request/response validation
+- **Core** (`app/core/`): Configuration, database connection, shared utilities
 
 ## Important Notes for AI Assistants
 
