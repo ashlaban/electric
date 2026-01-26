@@ -8,7 +8,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.enums import SubMeterKind
 from app.schemas.meter_reading import MeterReadingBulkCreate, MeterReadingCreate
 from app.services.meter import get_meter, get_meters_for_property
 from app.services.meter_reading import (
@@ -109,9 +108,7 @@ async def create_reading_page(
     meters_by_property = {}
     for prop in properties:
         meters = get_meters_for_property(db, prop.id)
-        # Filter out virtual meters
-        physical_meters = [m for m in meters if m.sub_meter_kind != SubMeterKind.VIRTUAL]
-        meters_by_property[prop.id] = physical_meters
+        meters_by_property[prop.id] = meters
 
     return templates.TemplateResponse(
         request,
@@ -175,9 +172,7 @@ async def bulk_reading_page(
 
     if selected_property_id:
         selected_property = get_property(db, selected_property_id)
-        all_meters = get_meters_for_property(db, selected_property_id)
-        # Filter to physical meters only
-        meters = [m for m in all_meters if m.sub_meter_kind != SubMeterKind.VIRTUAL]
+        meters = get_meters_for_property(db, selected_property_id)
 
     return templates.TemplateResponse(
         request,

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class Meter(Base):
-    """Meter entity - physical or virtual device for measuring usage."""
+    """Meter entity - physical device for measuring usage."""
 
     __tablename__ = "meters"
 
@@ -35,10 +35,6 @@ class Meter(Base):
     # Relationships
     parent_property: Mapped["Property"] = relationship(back_populates="meters")
     readings: Mapped[list["MeterReading"]] = relationship(back_populates="meter")
-
-    def get_is_virtual(self) -> bool:
-        """Check if this is a virtual (computed) meter."""
-        return self.sub_meter_kind == SubMeterKind.VIRTUAL
 
     def get_is_main_meter(self) -> bool:
         """Check if this is the main meter."""

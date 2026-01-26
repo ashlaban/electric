@@ -1,16 +1,19 @@
 """MeterReading routes for ledger operations."""
 
 from datetime import datetime
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.schemas.meter_reading import (
+    CostDistributionResult,
     MeterReadingBulkCreate,
     MeterReadingCreate,
     MeterReadingHistory,
     MeterReadingResponse,
+    PropertyConsumptionSummary,
     PropertyReadingSummary,
 )
 from app.services import meter_reading as reading_service
@@ -82,4 +85,42 @@ def get_meter_reading_history(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+@router.get("/property/{property_id}/consumption", response_model=PropertyConsumptionSummary)
+def get_property_consumption(
+    property_id: int,
+    start_timestamp: datetime = Query(..., description="Start of period"),
+    end_timestamp: datetime = Query(..., description="End of period"),
+    db: Session = Depends(get_db),
+):
+    """
+    Get consumption for a property over a period.
+
+    Consumption is calculated as: end_reading - start_reading for each meter.
+    Returns consumption for main meter, each submeter, and computed unmetered consumption.
+    """
+    return reading_service.get_property_consumption(db, property_id, start_timestamp, end_timestamp)
+
+
+@router.get("/property/{property_id}/cost-distribution", response_model=CostDistributionResult)
+def get_cost_distribution(
+    property_id: int,
+    start_timestamp: datetime = Query(..., description="Start of period"),
+    end_timestamp: datetime = Query(..., description="End of period"),
+    total_cost: Decimal = Query(..., description="Total cost to distribute"),
+    db: Session = Depends(get_db),
+):
+    """
+    Distribute costs across submeters based on consumption.
+
+    The cost distribution works as follows:
+    1. Calculate each submeter's consumption for the period
+    2. Calculate each submeter's share of the total submetered consumption
+    3. Distribute the unmetered consumption proportionally among submeters
+    4. Allocate the total cost based on each submeter's share of total consumption
+    """
+    return reading_service.distribute_costs(
+        db, property_id, start_timestamp, end_timestamp, total_cost
     )
