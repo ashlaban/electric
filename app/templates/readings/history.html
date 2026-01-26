@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Reading History - {{ meter.name or 'Main Meter' }} - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Reading History</h1>
+    <p>
+        <a href="/meters/{{ meter.id }}">{% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}</a>
+        at
+        <a href="/properties/{{ property.id }}">{{ property.display_name }}</a>
+    </p>
+</hgroup>
+
+<p>
+    <a href="/readings/create?meter_id={{ meter.id }}" role="button" class="outline">Add Reading</a>
+</p>
+
+{% if readings %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Value</th>
+                    <th>Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reading in readings %}
+                    <tr>
+                        <td>{{ reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td><strong>{{ reading.value }}</strong></td>
+                        <td>
+                            {% if not loop.last %}
+                                {% set prev = readings[loop.index] %}
+                                {% set diff = reading.value - prev.value %}
+                                {% if diff > 0 %}
+                                    <span class="text-success">+{{ diff }}</span>
+                                {% elif diff < 0 %}
+                                    <span class="text-warning">{{ diff }}</span>
+                                {% else %}
+                                    <span>0</span>
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+
+    {% include "components/_pagination.html" %}
+
+    <p><small>Total: {{ total }} readings</small></p>
+{% else %}
+    <article>
+        <p>No readings recorded yet.</p>
+        <a href="/readings/create?meter_id={{ meter.id }}" role="button" class="outline">Add First Reading</a>
+    </article>
+{% endif %}
+
+<p><a href="/meters/{{ meter.id }}">&larr; Back to Meter</a></p>
+{% endblock %}

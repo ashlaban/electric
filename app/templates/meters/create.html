@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Add Meter - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Add Submeter</h1>
+    <p>Add a new submeter to track additional readings.</p>
+</hgroup>
+
+<article>
+    <form method="post" action="/meters/create">
+        <label for="property_id">
+            Property
+            <select id="property_id" name="property_id" required>
+                <option value="">Select a property</option>
+                {% for prop in properties %}
+                    <option value="{{ prop.id }}"
+                            {% if selected_property_id == prop.id %}selected{% endif %}>
+                        {{ prop.display_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label for="name">
+            Meter Name
+            <input type="text" id="name" name="name"
+                   placeholder="e.g., Kitchen, Garage, Unit 2" required autofocus>
+        </label>
+
+        <label for="location">
+            Location (optional)
+            <input type="text" id="location" name="location"
+                   placeholder="e.g., Basement, Outside wall">
+        </label>
+
+        <label for="sub_meter_kind">
+            Meter Kind
+            <select id="sub_meter_kind" name="sub_meter_kind">
+                <option value="physical" selected>Physical (has its own meter)</option>
+                <option value="virtual">Virtual (calculated from other meters)</option>
+            </select>
+            <small>Physical meters have actual readings. Virtual meters are computed automatically.</small>
+        </label>
+
+        <button type="submit">Create Meter</button>
+    </form>
+</article>
+
+<p><a href="/meters">&larr; Back to Meters</a></p>
+{% endblock %}

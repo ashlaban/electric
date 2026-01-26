@@ -1,0 +1,19 @@
+{% if total_pages > 1 %}
+<nav class="pagination">
+    <ul>
+        {% if page > 1 %}
+            <li><a href="?page={{ page - 1 }}">&laquo; Previous</a></li>
+        {% else %}
+            <li><span class="disabled">&laquo; Previous</span></li>
+        {% endif %}
+
+        <li><span>Page {{ page }} of {{ total_pages }}</span></li>
+
+        {% if page < total_pages %}
+            <li><a href="?page={{ page + 1 }}">Next &raquo;</a></li>
+        {% else %}
+            <li><span class="disabled">Next &raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

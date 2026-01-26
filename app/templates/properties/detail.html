@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.display_name }} - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>{{ property.display_name }}</h1>
+    {% if property.address %}
+        <p>{{ property.address }}</p>
+    {% endif %}
+</hgroup>
+
+<p>
+    <a href="/properties/{{ property.id }}/edit" role="button" class="outline">Edit Property</a>
+    <a href="/readings/bulk?property_id={{ property.id }}" role="button">Add Readings</a>
+</p>
+
+{% if latest_reading %}
+    <article>
+        <header>Latest Reading</header>
+        <p>
+            <strong>Main Meter:</strong> {{ latest_reading.main_meter }}<br>
+            <small>{{ latest_reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+        </p>
+        {% if latest_reading.submeters %}
+            <p><strong>Submeters:</strong></p>
+            <ul>
+                {% for sub in latest_reading.submeters %}
+                    <li>{{ sub.name }}: {{ sub.value }}{% if sub.is_virtual %} (calculated){% endif %}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if latest_reading.unmetered is not none %}
+            <p><strong>Unmetered:</strong> {{ latest_reading.unmetered }}</p>
+        {% endif %}
+    </article>
+{% endif %}
+
+<h2>Meters</h2>
+
+<p><a href="/meters/create?property_id={{ property.id }}" role="button" class="outline">Add Submeter</a></p>
+
+{% if meters %}
+    <figure>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meter in meters %}
+                    <tr>
+                        <td>
+                            <a href="/meters/{{ meter.id }}">
+                                {% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% if meter.meter_type.value == 'main_meter' %}
+                                <mark>Main</mark>
+                            {% else %}
+                                {{ meter.sub_meter_kind.value|title if meter.sub_meter_kind else 'Sub' }}
+                            {% endif %}
+                        </td>
+                        <td>{{ meter.location or '-' }}</td>
+                        <td>
+                            <a href="/meters/{{ meter.id }}">View</a>
+                            {% if meter.meter_type.value != 'main_meter' %}
+                                | <a href="/meters/{{ meter.id }}/edit">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+{% else %}
+    <p>No meters found.</p>
+{% endif %}
+
+<hr>
+
+<details>
+    <summary>Delete Property</summary>
+    <form method="post" action="/properties/{{ property.id }}/delete"
+          onsubmit="return confirm('Are you sure you want to delete this property? This will also delete all meters and readings.');">
+        <p class="error">Warning: This action cannot be undone. All meters and readings will be deleted.</p>
+        <button type="submit" class="secondary">Delete Property</button>
+    </form>
+</details>
+{% endblock %}

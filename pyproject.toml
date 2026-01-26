@@ -13,6 +13,8 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "python-multipart>=0.0.6",
     "email-validator>=2.0.0",
+    "jinja2>=3.1.0",
+    "itsdangerous>=2.0.0",
 ]
 
 [dependency-groups]
@@ -52,6 +54,8 @@ ignore = [
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 "tests/**/*.py" = ["S101"] # Allow assert in tests
 "app/api/routes/*.py" = ["B008"]  # Allow Depends in FastAPI route parameters
+"app/web/routes/*.py" = ["B008"]  # Allow Depends/Form in FastAPI route parameters
+"app/web/dependencies.py" = ["B008"]  # Allow Depends in FastAPI dependencies
 
 [tool.ruff.format]
 quote-style = "double"

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Add Property - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Add Property</h1>
+    {% if onboarding %}
+        <p>Let's set up your first property to start tracking meter readings.</p>
+    {% else %}
+        <p>Add a new property to track meter readings.</p>
+    {% endif %}
+</hgroup>
+
+<article>
+    <form method="post" action="/properties/create">
+        <label for="display_name">
+            Property Name
+            <input type="text" id="display_name" name="display_name"
+                   placeholder="e.g., Home, Office, Apartment 3B" required autofocus>
+        </label>
+
+        <label for="address">
+            Address (optional)
+            <input type="text" id="address" name="address"
+                   placeholder="e.g., 123 Main Street">
+        </label>
+
+        <button type="submit">Create Property</button>
+    </form>
+
+    <footer>
+        <small>A main meter will be automatically created for this property.</small>
+    </footer>
+</article>
+
+{% if not onboarding %}
+    <p><a href="/properties">&larr; Back to Properties</a></p>
+{% endif %}
+{% endblock %}

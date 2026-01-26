@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ property.display_name }} - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Edit Property</h1>
+    <p>Update property details</p>
+</hgroup>
+
+<article>
+    <form method="post" action="/properties/{{ property.id }}/edit">
+        <label for="display_name">
+            Property Name
+            <input type="text" id="display_name" name="display_name"
+                   value="{{ property.display_name }}" required autofocus>
+        </label>
+
+        <label for="address">
+            Address (optional)
+            <input type="text" id="address" name="address"
+                   value="{{ property.address or '' }}"
+                   placeholder="e.g., 123 Main Street">
+        </label>
+
+        <div class="grid">
+            <button type="submit">Save Changes</button>
+            <a href="/properties/{{ property.id }}" role="button" class="secondary">Cancel</a>
+        </div>
+    </form>
+</article>
+{% endblock %}

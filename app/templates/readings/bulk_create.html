@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Reading Entry - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Bulk Reading Entry</h1>
+    <p>Record readings for all meters at once.</p>
+</hgroup>
+
+{% if not selected_property %}
+    <article>
+        <form method="get" action="/readings/bulk">
+            <label for="property_id">
+                Select Property
+                <select id="property_id" name="property_id" required onchange="this.form.submit()">
+                    <option value="">Choose a property...</option>
+                    {% for prop in properties %}
+                        <option value="{{ prop.id }}">{{ prop.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </form>
+    </article>
+{% else %}
+    <article>
+        <header>
+            <strong>{{ selected_property.display_name }}</strong>
+            <small><a href="/readings/bulk">Change property</a></small>
+        </header>
+
+        <form method="post" action="/readings/bulk">
+            <input type="hidden" name="property_id" value="{{ selected_property.id }}">
+
+            <label for="reading_date">
+                Reading Date & Time
+                <input type="datetime-local" id="reading_date" name="reading_date">
+                <small>Leave empty for current time</small>
+            </label>
+
+            <hr>
+
+            {% for meter in meters %}
+                {% if meter.meter_type.value == 'main_meter' %}
+                    <label for="main_meter_value">
+                        <strong>Main Meter</strong>
+                        <input type="number" id="main_meter_value" name="main_meter_value"
+                               step="0.01" placeholder="Enter main meter reading"
+                               required autofocus inputmode="decimal">
+                    </label>
+                {% endif %}
+            {% endfor %}
+
+            {% set has_submeters = false %}
+            {% for meter in meters %}
+                {% if meter.meter_type.value != 'main_meter' %}
+                    {% set has_submeters = true %}
+                {% endif %}
+            {% endfor %}
+
+            {% if has_submeters %}
+                <hr>
+                <p><strong>Submeters</strong> (optional)</p>
+
+                {% for meter in meters %}
+                    {% if meter.meter_type.value != 'main_meter' %}
+                        <label for="submeter_{{ meter.name }}">
+                            {{ meter.name }}
+                            {% if meter.location %}<small>({{ meter.location }})</small>{% endif %}
+                            <input type="number" id="submeter_{{ meter.name }}"
+                                   name="submeter_{{ meter.name }}"
+                                   step="0.01" placeholder="Enter reading"
+                                   inputmode="decimal">
+                        </label>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <button type="submit">Save All Readings</button>
+        </form>
+    </article>
+{% endif %}
+
+<p><a href="/readings">&larr; Back to Readings</a></p>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Electric{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="grid">
+    <article>
+        <header>Properties</header>
+        <p class="stat-number">{{ stats.properties_count }}</p>
+    </article>
+    <article>
+        <header>Meters</header>
+        <p class="stat-number">{{ stats.meters_count }}</p>
+    </article>
+    <article>
+        <header>Readings This Month</header>
+        <p class="stat-number">{{ stats.readings_this_month }}</p>
+    </article>
+</div>
+
+<h2>Your Properties</h2>
+
+{% if property_summaries %}
+    <div class="grid">
+        {% for summary in property_summaries %}
+            <article>
+                <header>
+                    <a href="/properties/{{ summary.property.id }}">
+                        {{ summary.property.display_name }}
+                    </a>
+                </header>
+
+                <p><strong>{{ summary.meters_count }}</strong> meter{% if summary.meters_count != 1 %}s{% endif %}</p>
+
+                {% if summary.latest_reading %}
+                    <p>
+                        Latest: <strong>{{ summary.latest_reading.main_meter }}</strong>
+                        <br>
+                        <small>{{ summary.latest_reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </p>
+                {% else %}
+                    <p><small>No readings yet</small></p>
+                {% endif %}
+
+                <footer>
+                    <a href="/readings/bulk?property_id={{ summary.property.id }}" role="button" class="outline">
+                        Add Reading
+                    </a>
+                </footer>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <article>
+        <p>You don't have any properties yet.</p>
+        <a href="/properties/create" role="button">Add Your First Property</a>
+    </article>
+{% endif %}
+{% endblock %}
