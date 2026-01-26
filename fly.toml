@@ -1,7 +1,7 @@
 # fly.toml - Fly.io application configuration
 
 app = "electric-api"
-primary_region = "iad"  # US East (Virginia) - good latency, competitive pricing
+primary_region = "arn"  # Stockholm, Sweden
 
 [build]
   dockerfile = "Dockerfile"
