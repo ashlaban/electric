@@ -11,7 +11,6 @@ class MeterType(str, Enum):
 
 
 class SubMeterKind(str, Enum):
-    """Physical vs virtual classification (submeters only)."""
+    """Classification of submeters. Currently only physical submeters are supported."""
 
     PHYSICAL = "physical"
-    VIRTUAL = "virtual"

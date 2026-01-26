@@ -54,7 +54,6 @@ class SubMeterReading(BaseModel):
     name: str
     location: str | None
     value: Decimal
-    is_virtual: bool = False
 
 
 class PropertyReadingSummary(BaseModel):
@@ -64,7 +63,7 @@ class PropertyReadingSummary(BaseModel):
     reading_timestamp: datetime
     main_meter: Decimal | None
     submeters: list[SubMeterReading]
-    unmetered: Decimal | None  # Computed virtual value
+    unmetered: Decimal | None  # Computed: main_meter - sum(submeters)
 
 
 class MeterReadingHistory(BaseModel):
@@ -75,3 +74,57 @@ class MeterReadingHistory(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+# Consumption calculation schemas
+
+
+class SubMeterConsumption(BaseModel):
+    """Schema for a submeter's consumption in a period."""
+
+    name: str
+    meter_id: int
+    location: str | None
+    start_value: Decimal
+    end_value: Decimal
+    consumption: Decimal  # end_value - start_value
+
+
+class PropertyConsumptionSummary(BaseModel):
+    """Consumption summary for a property over a period."""
+
+    property_id: int
+    start_timestamp: datetime
+    end_timestamp: datetime
+    main_meter_consumption: Decimal | None  # Total property consumption
+    submeters: list[SubMeterConsumption]
+    total_submetered_consumption: Decimal  # Sum of all submeter consumption
+    unmetered_consumption: Decimal | None  # main_meter - sum(submeters)
+
+
+# Cost distribution schemas
+
+
+class SubMeterCostShare(BaseModel):
+    """Schema for a submeter's share of costs."""
+
+    name: str
+    meter_id: int
+    location: str | None
+    consumption: Decimal
+    consumption_share: Decimal  # Percentage of total submetered consumption (0-1)
+    unmetered_share: Decimal  # Share of unmetered consumption
+    total_consumption: Decimal  # consumption + unmetered_share
+    cost: Decimal  # Allocated cost
+
+
+class CostDistributionResult(BaseModel):
+    """Result of distributing costs across submeters for a property."""
+
+    property_id: int
+    start_timestamp: datetime
+    end_timestamp: datetime
+    total_cost: Decimal  # Input: total cost to distribute
+    main_meter_consumption: Decimal | None
+    unmetered_consumption: Decimal | None
+    submeters: list[SubMeterCostShare]

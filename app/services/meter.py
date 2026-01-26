@@ -36,7 +36,7 @@ def create_main_meter(db: Session, meter_data: MainMeterCreate) -> Meter:
 
 
 def create_submeter(db: Session, meter_data: SubMeterCreate) -> Meter:
-    """Create a submeter for a property."""
+    """Create a submeter for a property. All submeters are physical."""
     # Check for duplicate submeter name on same property
     existing = (
         db.query(Meter)
@@ -55,7 +55,7 @@ def create_submeter(db: Session, meter_data: SubMeterCreate) -> Meter:
     db_meter = Meter(
         property_id=meter_data.property_id,
         meter_type=MeterType.SUB_METER,
-        sub_meter_kind=meter_data.sub_meter_kind,
+        sub_meter_kind=SubMeterKind.PHYSICAL,
         name=meter_data.name,
         location=meter_data.location,
     )
@@ -93,14 +93,13 @@ def get_main_meter_for_property(db: Session, property_id: int) -> Meter | None:
     )
 
 
-def get_physical_submeters_for_property(db: Session, property_id: int) -> list[Meter]:
-    """Get all physical submeters for a property."""
+def get_submeters_for_property(db: Session, property_id: int) -> list[Meter]:
+    """Get all submeters for a property."""
     return (
         db.query(Meter)
         .filter(
             Meter.property_id == property_id,
             Meter.meter_type == MeterType.SUB_METER,
-            Meter.sub_meter_kind == SubMeterKind.PHYSICAL,
         )
         .all()
     )

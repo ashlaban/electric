@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.enums import MeterType, SubMeterKind
+from app.models.enums import MeterType
 from app.schemas.meter import MeterUpdate, SubMeterCreate
 from app.services.meter import (
     create_submeter,
@@ -80,7 +80,6 @@ async def create_meter_page(
             "user": user,
             "properties": properties,
             "selected_property_id": property_id,
-            "sub_meter_kinds": [k.value for k in SubMeterKind],
         },
     )
 
@@ -91,7 +90,6 @@ async def create_meter_submit(
     property_id: int = Form(...),
     name: str = Form(...),
     location: str = Form(""),
-    sub_meter_kind: str = Form("physical"),
     db: Session = Depends(get_db),
 ) -> HTMLResponse | RedirectResponse:
     """Process create meter form."""
@@ -103,7 +101,6 @@ async def create_meter_submit(
         property_id=property_id,
         name=name,
         location=location or None,
-        sub_meter_kind=SubMeterKind(sub_meter_kind),
     )
 
     new_meter = create_submeter(db, meter_data)
@@ -161,7 +158,6 @@ async def edit_meter_page(
             "user": user,
             "meter": meter,
             "property": prop,
-            "sub_meter_kinds": [k.value for k in SubMeterKind],
         },
     )
 

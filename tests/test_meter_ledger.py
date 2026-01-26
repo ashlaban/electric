@@ -24,7 +24,7 @@ class TestComputeUnmeteredValue:
         """Test basic unmetered calculation."""
         result = compute_unmetered_value(
             main_meter_value=Decimal("500.0"),
-            physical_submeter_values=[Decimal("150.0"), Decimal("120.0"), Decimal("80.0")],
+            submeter_values=[Decimal("150.0"), Decimal("120.0"), Decimal("80.0")],
         )
         assert result == Decimal("150.0")
 
@@ -32,7 +32,7 @@ class TestComputeUnmeteredValue:
         """Test when there are no submeters - all is unmetered."""
         result = compute_unmetered_value(
             main_meter_value=Decimal("500.0"),
-            physical_submeter_values=[],
+            submeter_values=[],
         )
         assert result == Decimal("500.0")
 
@@ -40,7 +40,7 @@ class TestComputeUnmeteredValue:
         """Test when main meter value is None."""
         result = compute_unmetered_value(
             main_meter_value=None,
-            physical_submeter_values=[Decimal("100.0")],
+            submeter_values=[Decimal("100.0")],
         )
         assert result is None
 
@@ -48,7 +48,7 @@ class TestComputeUnmeteredValue:
         """Test that negative unmetered values are clamped to zero."""
         result = compute_unmetered_value(
             main_meter_value=Decimal("100.0"),
-            physical_submeter_values=[Decimal("150.0")],
+            submeter_values=[Decimal("150.0")],
         )
         assert result == Decimal("0")
 
@@ -56,7 +56,7 @@ class TestComputeUnmeteredValue:
         """Test when submeters exactly match main meter."""
         result = compute_unmetered_value(
             main_meter_value=Decimal("200.0"),
-            physical_submeter_values=[Decimal("100.0"), Decimal("100.0")],
+            submeter_values=[Decimal("100.0"), Decimal("100.0")],
         )
         assert result == Decimal("0")
 
@@ -64,7 +64,7 @@ class TestComputeUnmeteredValue:
         """Test that decimal precision is maintained."""
         result = compute_unmetered_value(
             main_meter_value=Decimal("100.123"),
-            physical_submeter_values=[Decimal("50.456"), Decimal("20.333")],
+            submeter_values=[Decimal("50.456"), Decimal("20.333")],
         )
         assert result == Decimal("29.334")
 
@@ -169,12 +169,11 @@ class TestMeterEndpoints:
         )
         property_id = prop_response.json()["id"]
 
-        # Create a physical submeter
+        # Create a submeter (all submeters are physical now)
         response = client.post(
             "/api/meters/submeter",
             json={
                 "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.PHYSICAL,
                 "name": "gg",
                 "location": "Ground floor",
             },
@@ -185,27 +184,6 @@ class TestMeterEndpoints:
         assert data["sub_meter_kind"] == SubMeterKind.PHYSICAL
         assert data["name"] == "gg"
         assert data["location"] == "Ground floor"
-
-    def test_create_virtual_submeter(self, client: TestClient) -> None:
-        """Test creating a virtual submeter."""
-        # Create a property first
-        prop_response = client.post(
-            "/api/properties/",
-            json={"display_name": "Virtual Submeter Property"},
-        )
-        property_id = prop_response.json()["id"]
-
-        # Create a virtual submeter
-        response = client.post(
-            "/api/meters/submeter",
-            json={
-                "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.VIRTUAL,
-                "name": "unmetered",
-            },
-        )
-        assert response.status_code == 201
-        assert response.json()["sub_meter_kind"] == SubMeterKind.VIRTUAL
 
     def test_duplicate_submeter_name_rejected(self, client: TestClient) -> None:
         """Test that duplicate submeter names are rejected."""
@@ -221,7 +199,6 @@ class TestMeterEndpoints:
             "/api/meters/submeter",
             json={
                 "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.PHYSICAL,
                 "name": "gg",
             },
         )
@@ -231,7 +208,6 @@ class TestMeterEndpoints:
             "/api/meters/submeter",
             json={
                 "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.PHYSICAL,
                 "name": "gg",
             },
         )
@@ -285,37 +261,6 @@ class TestReadingEndpoints:
         assert data["meter_id"] == meter_id
         assert Decimal(data["value"]) == Decimal("250.5")
 
-    def test_cannot_record_virtual_meter_reading(self, client: TestClient) -> None:
-        """Test that recordings for virtual meters are rejected."""
-        # Create property with virtual submeter
-        prop_response = client.post(
-            "/api/properties/",
-            json={"display_name": "Virtual Reading Test"},
-        )
-        property_id = prop_response.json()["id"]
-
-        # Create virtual submeter
-        submeter_response = client.post(
-            "/api/meters/submeter",
-            json={
-                "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.VIRTUAL,
-                "name": "unmetered",
-            },
-        )
-        virtual_meter_id = submeter_response.json()["id"]
-
-        # Try to create a reading for virtual meter
-        response = client.post(
-            "/api/readings/",
-            json={
-                "meter_id": virtual_meter_id,
-                "reading_timestamp": "2024-01-15T10:30:00Z",
-                "value": "100.0",
-            },
-        )
-        assert response.status_code == 400
-
     def test_bulk_readings(self, client: TestClient) -> None:
         """Test creating bulk readings for a property."""
         # Create property with submeters
@@ -325,13 +270,12 @@ class TestReadingEndpoints:
         )
         property_id = prop_response.json()["id"]
 
-        # Create physical submeters
+        # Create submeters
         for name in ["gg", "sg"]:
             client.post(
                 "/api/meters/submeter",
                 json={
                     "property_id": property_id,
-                    "sub_meter_kind": SubMeterKind.PHYSICAL,
                     "name": name,
                 },
             )
@@ -359,13 +303,12 @@ class TestReadingEndpoints:
         )
         property_id = prop_response.json()["id"]
 
-        # Create physical submeters
+        # Create submeters
         for name in ["gg", "sg"]:
             client.post(
                 "/api/meters/submeter",
                 json={
                     "property_id": property_id,
-                    "sub_meter_kind": SubMeterKind.PHYSICAL,
                     "name": name,
                 },
             )
@@ -459,6 +402,240 @@ class TestReadingEndpoints:
         assert len(data["readings"]) == 5
 
 
+class TestConsumptionEndpoints:
+    """Tests for consumption calculation endpoints."""
+
+    def test_get_property_consumption(self, client: TestClient) -> None:
+        """Test calculating consumption over a period."""
+        # Create property with submeters
+        prop_response = client.post(
+            "/api/properties/",
+            json={"display_name": "Consumption Test Property"},
+        )
+        property_id = prop_response.json()["id"]
+
+        # Create submeters
+        for name in ["apt_a", "apt_b"]:
+            client.post(
+                "/api/meters/submeter",
+                json={
+                    "property_id": property_id,
+                    "name": name,
+                },
+            )
+
+        # Record readings at start of month
+        start_timestamp = "2024-01-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": start_timestamp,
+                "main_meter_value": "1000.0",
+                "submeter_readings": {"apt_a": "300.0", "apt_b": "500.0"},
+            },
+        )
+
+        # Record readings at end of month
+        end_timestamp = "2024-02-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": end_timestamp,
+                "main_meter_value": "1500.0",
+                "submeter_readings": {"apt_a": "400.0", "apt_b": "650.0"},
+            },
+        )
+
+        # Get consumption
+        response = client.get(
+            f"/api/readings/property/{property_id}/consumption",
+            params={
+                "start_timestamp": start_timestamp,
+                "end_timestamp": end_timestamp,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        # Verify main meter consumption: 1500 - 1000 = 500
+        assert Decimal(data["main_meter_consumption"]) == Decimal("500.0")
+
+        # Verify submeter consumptions
+        submeter_map = {s["name"]: s for s in data["submeters"]}
+        # apt_a: 400 - 300 = 100
+        assert Decimal(submeter_map["apt_a"]["consumption"]) == Decimal("100.0")
+        # apt_b: 650 - 500 = 150
+        assert Decimal(submeter_map["apt_b"]["consumption"]) == Decimal("150.0")
+
+        # Verify total submetered: 100 + 150 = 250
+        assert Decimal(data["total_submetered_consumption"]) == Decimal("250.0")
+
+        # Verify unmetered: 500 - 250 = 250
+        assert Decimal(data["unmetered_consumption"]) == Decimal("250.0")
+
+
+class TestCostDistributionEndpoints:
+    """Tests for cost distribution endpoints."""
+
+    def test_distribute_costs(self, client: TestClient) -> None:
+        """Test distributing costs across submeters."""
+        # Create property with submeters
+        prop_response = client.post(
+            "/api/properties/",
+            json={"display_name": "Cost Distribution Property"},
+        )
+        property_id = prop_response.json()["id"]
+
+        # Create submeters
+        for name in ["apt_a", "apt_b"]:
+            client.post(
+                "/api/meters/submeter",
+                json={
+                    "property_id": property_id,
+                    "name": name,
+                },
+            )
+
+        # Record readings at start of month
+        start_timestamp = "2024-01-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": start_timestamp,
+                "main_meter_value": "1000.0",
+                "submeter_readings": {"apt_a": "300.0", "apt_b": "500.0"},
+            },
+        )
+
+        # Record readings at end of month
+        end_timestamp = "2024-02-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": end_timestamp,
+                "main_meter_value": "1500.0",
+                "submeter_readings": {"apt_a": "400.0", "apt_b": "650.0"},
+            },
+        )
+
+        # Distribute costs (total bill: $500)
+        response = client.get(
+            f"/api/readings/property/{property_id}/cost-distribution",
+            params={
+                "start_timestamp": start_timestamp,
+                "end_timestamp": end_timestamp,
+                "total_cost": "500.0",
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        # Verify basic data
+        assert Decimal(data["total_cost"]) == Decimal("500.0")
+        assert Decimal(data["main_meter_consumption"]) == Decimal("500.0")
+        assert Decimal(data["unmetered_consumption"]) == Decimal("250.0")
+
+        # Verify cost distribution
+        # apt_a consumption: 100, apt_b consumption: 150
+        # apt_a share of submetered: 100/250 = 0.4, apt_b share: 150/250 = 0.6
+        # Unmetered = 250
+        # apt_a unmetered share: 0.4 * 250 = 100, apt_b: 0.6 * 250 = 150
+        # apt_a total: 100 + 100 = 200, apt_b total: 150 + 150 = 300
+        # Total for cost: 200 + 300 = 500
+        # apt_a cost: (200/500) * 500 = 200, apt_b cost: (300/500) * 500 = 300
+
+        submeter_map = {s["name"]: s for s in data["submeters"]}
+
+        # apt_a
+        apt_a = submeter_map["apt_a"]
+        assert Decimal(apt_a["consumption"]) == Decimal("100.0")
+        assert Decimal(apt_a["consumption_share"]) == Decimal("0.4")
+        assert Decimal(apt_a["unmetered_share"]) == Decimal("100.0")
+        assert Decimal(apt_a["total_consumption"]) == Decimal("200.0")
+        assert Decimal(apt_a["cost"]) == Decimal("200.00")
+
+        # apt_b
+        apt_b = submeter_map["apt_b"]
+        assert Decimal(apt_b["consumption"]) == Decimal("150.0")
+        assert Decimal(apt_b["consumption_share"]) == Decimal("0.6")
+        assert Decimal(apt_b["unmetered_share"]) == Decimal("150.0")
+        assert Decimal(apt_b["total_consumption"]) == Decimal("300.0")
+        assert Decimal(apt_b["cost"]) == Decimal("300.00")
+
+    def test_distribute_costs_no_unmetered(self, client: TestClient) -> None:
+        """Test cost distribution when there's no unmetered consumption."""
+        # Create property with submeters
+        prop_response = client.post(
+            "/api/properties/",
+            json={"display_name": "No Unmetered Cost Property"},
+        )
+        property_id = prop_response.json()["id"]
+
+        # Create submeters
+        for name in ["apt_a", "apt_b"]:
+            client.post(
+                "/api/meters/submeter",
+                json={
+                    "property_id": property_id,
+                    "name": name,
+                },
+            )
+
+        # Record readings where submeters exactly match main meter
+        start_timestamp = "2024-01-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": start_timestamp,
+                "main_meter_value": "1000.0",
+                "submeter_readings": {"apt_a": "400.0", "apt_b": "600.0"},
+            },
+        )
+
+        end_timestamp = "2024-02-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": end_timestamp,
+                "main_meter_value": "1200.0",  # 200 total consumption
+                "submeter_readings": {"apt_a": "480.0", "apt_b": "720.0"},  # 80 + 120 = 200
+            },
+        )
+
+        # Distribute costs
+        response = client.get(
+            f"/api/readings/property/{property_id}/cost-distribution",
+            params={
+                "start_timestamp": start_timestamp,
+                "end_timestamp": end_timestamp,
+                "total_cost": "200.0",
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+
+        # Verify no unmetered consumption
+        assert Decimal(data["unmetered_consumption"]) == Decimal("0")
+
+        submeter_map = {s["name"]: s for s in data["submeters"]}
+
+        # apt_a: 80/200 * 200 = 80
+        assert Decimal(submeter_map["apt_a"]["consumption"]) == Decimal("80.0")
+        assert Decimal(submeter_map["apt_a"]["unmetered_share"]) == Decimal("0")
+        assert Decimal(submeter_map["apt_a"]["cost"]) == Decimal("80.00")
+
+        # apt_b: 120/200 * 200 = 120
+        assert Decimal(submeter_map["apt_b"]["consumption"]) == Decimal("120.0")
+        assert Decimal(submeter_map["apt_b"]["unmetered_share"]) == Decimal("0")
+        assert Decimal(submeter_map["apt_b"]["cost"]) == Decimal("120.00")
+
+
 class TestEndToEndWorkflow:
     """End-to-end integration tests for complete workflows."""
 
@@ -469,7 +646,7 @@ class TestEndToEndWorkflow:
         Scenario:
         - User registers
         - User creates a property
-        - User adds 2 physical submeters (gg and sg)
+        - User adds 2 submeters (gg and sg)
         - User records readings: total=100, gg=30, sg=50
         - Verify readings are associated with correct meters
         - Verify read-back shows total=100, gg=30, sg=50, unmetered=20
@@ -514,12 +691,11 @@ class TestEndToEndWorkflow:
         assoc_response = client.post(f"/api/properties/{property_id}/users/{user_id}")
         assert assoc_response.status_code == 204
 
-        # Step 4: Add physical submeter "gg"
+        # Step 4: Add submeter "gg"
         gg_response = client.post(
             "/api/meters/submeter",
             json={
                 "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.PHYSICAL,
                 "name": "gg",
                 "location": "Ground floor",
             },
@@ -531,12 +707,11 @@ class TestEndToEndWorkflow:
         assert gg_meter["sub_meter_kind"] == SubMeterKind.PHYSICAL
         gg_meter_id = gg_meter["id"]
 
-        # Step 5: Add physical submeter "sg"
+        # Step 5: Add submeter "sg"
         sg_response = client.post(
             "/api/meters/submeter",
             json={
                 "property_id": property_id,
-                "sub_meter_kind": SubMeterKind.PHYSICAL,
                 "name": "sg",
                 "location": "Second floor",
             },
@@ -615,3 +790,110 @@ class TestEndToEndWorkflow:
         gg_history = gg_history_response.json()
         assert gg_history["total"] == 1
         assert Decimal(gg_history["readings"][0]["value"]) == Decimal("30.0")
+
+    def test_monthly_consumption_and_cost_distribution_workflow(self, client: TestClient) -> None:
+        """
+        Test complete workflow for monthly consumption and cost distribution.
+
+        Scenario:
+        - Create property with 2 apartments (submeters)
+        - Record readings at start and end of month
+        - Calculate consumption
+        - Distribute costs based on consumption
+        """
+        # Create property
+        prop_response = client.post(
+            "/api/properties/",
+            json={"display_name": "Monthly Billing Property"},
+        )
+        property_id = prop_response.json()["id"]
+
+        # Create submeters for apartments
+        for name, location in [("apt_101", "Apartment 101"), ("apt_102", "Apartment 102")]:
+            client.post(
+                "/api/meters/submeter",
+                json={
+                    "property_id": property_id,
+                    "name": name,
+                    "location": location,
+                },
+            )
+
+        # Record readings at start of billing period (January 1st)
+        start_timestamp = "2024-01-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": start_timestamp,
+                "main_meter_value": "5000.0",
+                "submeter_readings": {
+                    "apt_101": "2000.0",
+                    "apt_102": "2500.0",
+                },
+            },
+        )
+
+        # Record readings at end of billing period (February 1st)
+        end_timestamp = "2024-02-01T00:00:00Z"
+        client.post(
+            "/api/readings/bulk",
+            json={
+                "property_id": property_id,
+                "reading_timestamp": end_timestamp,
+                "main_meter_value": "5800.0",  # 800 kWh total
+                "submeter_readings": {
+                    "apt_101": "2300.0",  # 300 kWh
+                    "apt_102": "2900.0",  # 400 kWh
+                },  # 700 kWh submetered, 100 kWh unmetered
+            },
+        )
+
+        # Get consumption summary
+        consumption_response = client.get(
+            f"/api/readings/property/{property_id}/consumption",
+            params={
+                "start_timestamp": start_timestamp,
+                "end_timestamp": end_timestamp,
+            },
+        )
+        assert consumption_response.status_code == 200
+        consumption = consumption_response.json()
+
+        # Verify consumption
+        assert Decimal(consumption["main_meter_consumption"]) == Decimal("800.0")
+        assert Decimal(consumption["total_submetered_consumption"]) == Decimal("700.0")
+        assert Decimal(consumption["unmetered_consumption"]) == Decimal("100.0")
+
+        # Distribute the electricity bill ($240 for the month)
+        cost_response = client.get(
+            f"/api/readings/property/{property_id}/cost-distribution",
+            params={
+                "start_timestamp": start_timestamp,
+                "end_timestamp": end_timestamp,
+                "total_cost": "240.0",
+            },
+        )
+        assert cost_response.status_code == 200
+        costs = cost_response.json()
+
+        # Verify cost distribution
+        assert Decimal(costs["total_cost"]) == Decimal("240.0")
+
+        submeter_costs = {s["name"]: s for s in costs["submeters"]}
+
+        # apt_101: 300 kWh consumption, 300/700 share = ~42.86%
+        # apt_101 unmetered share: 42.86% * 100 = ~42.86 kWh
+        # apt_101 total: 300 + 42.86 = 342.86 kWh
+        apt_101 = submeter_costs["apt_101"]
+        assert Decimal(apt_101["consumption"]) == Decimal("300.0")
+
+        # apt_102: 400 kWh consumption, 400/700 share = ~57.14%
+        # apt_102 unmetered share: 57.14% * 100 = ~57.14 kWh
+        # apt_102 total: 400 + 57.14 = 457.14 kWh
+        apt_102 = submeter_costs["apt_102"]
+        assert Decimal(apt_102["consumption"]) == Decimal("400.0")
+
+        # Total costs should equal $240
+        total_cost = Decimal(apt_101["cost"]) + Decimal(apt_102["cost"])
+        assert total_cost == Decimal("240.00")

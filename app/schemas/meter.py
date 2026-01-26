@@ -14,10 +14,9 @@ class MainMeterCreate(BaseModel):
 
 
 class SubMeterCreate(BaseModel):
-    """Schema for creating a submeter."""
+    """Schema for creating a submeter (all submeters are physical)."""
 
     property_id: int
-    sub_meter_kind: SubMeterKind
     name: str
     location: str | None = None
 
