@@ -1,0 +1,51 @@
+# fly.toml - Fly.io application configuration
+
+app = "electric-api"
+primary_region = "arn"  # Stockholm, Sweden
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Non-sensitive environment variables
+  PROJECT_NAME = "Electric"
+  HOST = "0.0.0.0"
+  PORT = "8000"
+  DEBUG = "false"
+  # DATABASE_URL is set dynamically based on volume mount
+  # SECRET_KEY must be set via `fly secrets set`
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"      # Key cost optimization
+  auto_start_machines = true
+  min_machines_running = 0         # Allow all machines to stop
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+  [http_service.checks]
+    [http_service.checks.health]
+      interval = "30s"
+      timeout = "5s"
+      grace_period = "10s"
+      method = "GET"
+      path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
+
+[mounts]
+  source = "electric_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+# Processes (single process for now)
+[processes]
+  app = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
