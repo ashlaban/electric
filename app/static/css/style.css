@@ -1,25 +1,113 @@
-/* Electric - Custom Styles */
+/* Electric - Custom Styles (mobile-first) */
 
-/* Brand styling */
+/* ============================================================
+   Layout & Navigation
+   ============================================================ */
+
+/* Brand */
 .brand {
     text-decoration: none;
     font-size: 1.25rem;
 }
 
-/* Auth card styling */
+/* Desktop navbar: hidden on mobile */
+.navbar-desktop {
+    display: none;
+}
+
+/* Mobile navbar: always visible */
+.navbar-mobile {
+    display: flex;
+}
+
+/* Bottom tab bar padding so content isn't hidden behind it */
+body.has-bottom-tabs main {
+    padding-bottom: 5rem;
+}
+
+/* Hide footer on mobile when tabs are shown */
+body.has-bottom-tabs footer {
+    display: none;
+}
+
+/* Desktop: show desktop nav, hide mobile nav and bottom tabs */
+@media (min-width: 769px) {
+    .navbar-desktop {
+        display: flex;
+    }
+    .navbar-mobile {
+        display: none;
+    }
+    .bottom-tabs {
+        display: none;
+    }
+    body.has-bottom-tabs main {
+        padding-bottom: 0;
+    }
+    body.has-bottom-tabs footer {
+        display: block;
+    }
+}
+
+/* ============================================================
+   Bottom Tab Bar
+   ============================================================ */
+
+.bottom-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: var(--background-color);
+    border-top: 1px solid var(--muted-border-color);
+    padding: 0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom, 0px));
+    z-index: 100;
+}
+
+.bottom-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    text-decoration: none;
+    color: var(--muted-color);
+    font-size: 0.7rem;
+    padding: 0.25rem 1rem;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-tab.active {
+    color: var(--primary);
+}
+
+.bottom-tab svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* ============================================================
+   Auth Card
+   ============================================================ */
+
 .auth-card {
     max-width: 400px;
     margin: 2rem auto;
 }
 
-/* Hero section for landing page */
+/* ============================================================
+   Hero / Landing Page (unauthenticated)
+   ============================================================ */
+
 .hero {
     text-align: center;
     padding: 2rem 0;
 }
 
 .hero h1 {
-    font-size: 3rem;
+    font-size: 2.25rem;
     margin-bottom: 0.5rem;
 }
 
@@ -31,7 +119,523 @@
     margin: 0 0.5rem;
 }
 
-/* Quick entry section */
+@media (min-width: 769px) {
+    .hero h1 {
+        font-size: 3rem;
+    }
+}
+
+/* ============================================================
+   Home Header (authenticated)
+   ============================================================ */
+
+.home-header {
+    text-align: center;
+    padding: 1rem 0 0.5rem;
+}
+
+.home-property-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+}
+
+.home-last-reading {
+    color: var(--muted-color);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.home-reading-date {
+    display: inline-block;
+    margin-left: 0.5rem;
+    opacity: 0.7;
+}
+
+/* ============================================================
+   Action Cards (home page)
+   ============================================================ */
+
+.action-cards {
+    max-width: 500px;
+    margin: 0.75rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-card {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.action-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.action-card-icon {
+    flex-shrink: 0;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+}
+
+.action-card-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.action-card-text strong {
+    display: block;
+    font-size: 1rem;
+}
+
+.action-card-text small {
+    color: var(--muted-color);
+}
+
+.action-card-chevron {
+    flex-shrink: 0;
+    color: var(--muted-color);
+    transition: transform 0.2s;
+}
+
+.action-card.open .action-card-chevron {
+    transform: rotate(180deg);
+}
+
+.action-card-body {
+    display: none;
+    padding: 0 1.25rem 1.25rem;
+    border-top: 1px solid var(--muted-border-color);
+}
+
+.action-card.open .action-card-body {
+    display: block;
+}
+
+.action-hint {
+    color: var(--muted-color);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.action-submit {
+    width: 100%;
+    display: block;
+    text-align: center;
+}
+
+/* ============================================================
+   Month Navigator (costs breakdown)
+   ============================================================ */
+
+.month-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.month-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--primary);
+    text-decoration: none;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.month-arrow:hover {
+    background: var(--muted-border-color);
+}
+
+.month-label {
+    font-size: 1.1rem;
+    text-align: center;
+    min-width: 10rem;
+}
+
+/* ============================================================
+   Cost Total
+   ============================================================ */
+
+.cost-total {
+    text-align: center;
+    padding: 0.5rem 0 1.5rem;
+}
+
+.cost-total-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary);
+}
+
+.cost-total-consumption {
+    color: var(--muted-color);
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   Cost Breakdown Cards
+   ============================================================ */
+
+.cost-breakdown {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cost-card {
+    margin: 0;
+    padding: 1rem 1.25rem;
+}
+
+.cost-card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.cost-card-header small {
+    color: var(--muted-color);
+}
+
+.cost-card-stats {
+    font-size: 0.9rem;
+    color: var(--muted-color);
+    margin-bottom: 0.25rem;
+}
+
+.cost-dot {
+    margin: 0 0.25rem;
+}
+
+.cost-card-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.cost-bar-track {
+    height: 6px;
+    background: var(--muted-border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.cost-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.cost-bar-unmetered {
+    background: var(--secondary);
+    opacity: 0.6;
+}
+
+.cost-card-unmetered {
+    opacity: 0.75;
+    border-style: dashed;
+}
+
+.cost-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+/* ============================================================
+   Cost Actions / Trend Link
+   ============================================================ */
+
+.cost-actions {
+    text-align: center;
+    padding: 1.5rem 0;
+}
+
+.trend-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 500;
+}
+
+/* ============================================================
+   Trends Page
+   ============================================================ */
+
+.trends-header {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.trends-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.trends-header p {
+    color: var(--muted-color);
+    margin: 0;
+}
+
+/* Vertical Bar Chart */
+.trends-chart {
+    max-width: 500px;
+    margin: 1.5rem auto;
+}
+
+.trends-chart h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 180px;
+    padding-bottom: 1.5rem;
+    position: relative;
+}
+
+.bar-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.bar-value {
+    font-size: 0.65rem;
+    color: var(--muted-color);
+    margin-bottom: 0.25rem;
+    min-height: 1rem;
+}
+
+.bar-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+}
+
+.bar-fill {
+    width: 100%;
+    background: var(--primary);
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+    transition: height 0.4s ease;
+}
+
+.bar-label {
+    font-size: 0.75rem;
+    color: var(--muted-color);
+    margin-top: 0.35rem;
+}
+
+/* Submeter Horizontal Bars */
+.trends-submeters {
+    max-width: 500px;
+    margin: 1.5rem auto;
+}
+
+.trends-submeters h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.trend-submeter-row {
+    margin-bottom: 0.75rem;
+}
+
+.trend-submeter-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.trend-submeter-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.trend-submeter-name {
+    flex: 1;
+}
+
+.trend-submeter-kwh {
+    color: var(--muted-color);
+    font-size: 0.85rem;
+}
+
+.horiz-bar-track {
+    height: 8px;
+    background: var(--muted-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.horiz-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+/* Month-over-Month */
+.trends-mom {
+    max-width: 500px;
+    margin: 1.5rem auto;
+}
+
+.trends-mom h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.mom-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--muted-border-color);
+    font-size: 0.9rem;
+}
+
+.mom-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.mom-values {
+    color: var(--muted-color);
+    font-size: 0.85rem;
+}
+
+.mom-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 1rem;
+    white-space: nowrap;
+}
+
+.mom-up {
+    color: #c0392b;
+    background: #fdecea;
+}
+
+.mom-down {
+    color: #27ae60;
+    background: #eafaf1;
+}
+
+.mom-flat {
+    color: var(--muted-color);
+    background: var(--muted-border-color);
+}
+
+/* ============================================================
+   Stats (dashboard)
+   ============================================================ */
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: var(--primary);
+}
+
+/* ============================================================
+   Flash Messages
+   ============================================================ */
+
+.flash-message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+}
+
+.flash-success {
+    background-color: var(--ins-color);
+    border-left: 4px solid var(--primary);
+}
+
+.flash-error {
+    background-color: var(--del-color);
+    border-left: 4px solid var(--form-element-invalid-border-color);
+}
+
+.flash-info {
+    background-color: var(--code-background-color);
+    border-left: 4px solid var(--secondary);
+}
+
+/* ============================================================
+   Error Text
+   ============================================================ */
+
+.error {
+    color: var(--form-element-invalid-border-color);
+}
+
+small.error {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Text colors */
+.text-success {
+    color: var(--ins-color);
+}
+
+.text-warning {
+    color: var(--form-element-invalid-border-color);
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+
+.pagination ul {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination .disabled {
+    color: var(--muted-color);
+}
+
+/* ============================================================
+   Legacy Quick Entry (kept for backward compat)
+   ============================================================ */
+
 .quick-entry {
     max-width: 500px;
     margin: 2rem auto;
@@ -60,76 +664,26 @@
     font-size: 0.9rem;
 }
 
-/* Stats styling */
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin: 0;
-    color: var(--primary);
-}
+/* ============================================================
+   Responsive: small mobile tweaks
+   ============================================================ */
 
-/* Flash messages */
-.flash-message {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: var(--border-radius);
-}
-
-.flash-success {
-    background-color: var(--ins-color);
-    border-left: 4px solid var(--primary);
-}
-
-.flash-error {
-    background-color: var(--del-color);
-    border-left: 4px solid var(--form-element-invalid-border-color);
-}
-
-.flash-info {
-    background-color: var(--code-background-color);
-    border-left: 4px solid var(--secondary);
-}
-
-/* Error text */
-.error {
-    color: var(--form-element-invalid-border-color);
-}
-
-small.error {
-    display: block;
-    margin-top: 0.25rem;
-}
-
-/* Text colors */
-.text-success {
-    color: var(--ins-color);
-}
-
-.text-warning {
-    color: var(--form-element-invalid-border-color);
-}
-
-/* Pagination */
-.pagination ul {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    list-style: none;
-    padding: 0;
-}
-
-.pagination .disabled {
-    color: var(--muted-color);
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2rem;
-    }
-
     .quick-links {
         flex-direction: column;
         gap: 0.5rem;
+    }
+
+    .month-label {
+        font-size: 1rem;
+        min-width: 8rem;
+    }
+
+    .cost-total-amount {
+        font-size: 1.75rem;
+    }
+
+    .bar-chart {
+        height: 150px;
     }
 }

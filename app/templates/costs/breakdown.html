@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Costs - Electric{% endblock %}
+
+{% block content %}
+<section class="month-navigator">
+    <a href="/costs?property_id={{ property_id }}&total_cost={{ total_cost }}&year={{ prev_year }}&month={{ prev_month }}"
+       class="month-arrow" aria-label="Previous month">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <div class="month-label">
+        <strong>{{ month_name }} {{ year }}</strong>
+    </div>
+    <a href="/costs?property_id={{ property_id }}&total_cost={{ total_cost }}&year={{ next_year }}&month={{ next_month }}"
+       class="month-arrow" aria-label="Next month">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+</section>
+
+<section class="cost-total">
+    <p class="cost-total-amount">{{ "%.2f"|format(total_cost) }} kr</p>
+    {% if cost_data and cost_data.main_meter_consumption is not none %}
+        <p class="cost-total-consumption">{{ cost_data.main_meter_consumption }} kWh total consumption</p>
+    {% else %}
+        <p class="cost-total-consumption">No consumption data for this period</p>
+    {% endif %}
+</section>
+
+{% if cost_data and cost_data.submeters %}
+    <section class="cost-breakdown">
+        {% for sub in cost_data.submeters %}
+            <article class="cost-card">
+                <div class="cost-card-header">
+                    <strong>{{ sub.name }}</strong>
+                    {% if sub.location %}
+                        <small>{{ sub.location }}</small>
+                    {% endif %}
+                </div>
+                <div class="cost-card-stats">
+                    <span class="cost-kwh">{{ sub.total_consumption }} kWh</span>
+                    <span class="cost-dot">&middot;</span>
+                    <span class="cost-pct">{{ "%.0f"|format(sub.consumption_share * 100) }}%</span>
+                </div>
+                <div class="cost-card-amount">{{ "%.2f"|format(sub.cost) }} kr</div>
+                <div class="cost-bar-track">
+                    <div class="cost-bar-fill" style="width: {{ "%.1f"|format(sub.consumption_share * 100) }}%"></div>
+                </div>
+            </article>
+        {% endfor %}
+
+        {% if cost_data.unmetered_consumption is not none and cost_data.unmetered_consumption > 0 %}
+            <article class="cost-card cost-card-unmetered">
+                <div class="cost-card-header">
+                    <strong>Common (unmetered)</strong>
+                </div>
+                <div class="cost-card-stats">
+                    <span class="cost-kwh">{{ cost_data.unmetered_consumption }} kWh</span>
+                    <span class="cost-dot">&middot;</span>
+                    <span class="cost-pct">shared proportionally</span>
+                </div>
+                <div class="cost-bar-track">
+                    {% if cost_data.main_meter_consumption and cost_data.main_meter_consumption > 0 %}
+                        {% set unmetered_pct = (cost_data.unmetered_consumption / cost_data.main_meter_consumption * 100) %}
+                        <div class="cost-bar-fill cost-bar-unmetered" style="width: {{ "%.1f"|format(unmetered_pct) }}%"></div>
+                    {% endif %}
+                </div>
+            </article>
+        {% endif %}
+    </section>
+{% else %}
+    <article class="cost-empty">
+        <p>No cost data available for this month.</p>
+        <p><small>Make sure you have meter readings at the start and end of the period.</small></p>
+    </article>
+{% endif %}
+
+<section class="cost-actions">
+    <a href="/trends?property_id={{ property_id }}" class="trend-link">
+        View Trends
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+</section>
+{% endblock %}
