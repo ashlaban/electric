@@ -58,6 +58,7 @@ async def home(
         "home/index.html",
         {
             "user": user,
+            "active_tab": "home",
             "property": default_property,
             "meter": default_meter,
             "latest_reading": latest_reading,

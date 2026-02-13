@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Consumption Trends - Electric{% endblock %}
+
+{% block content %}
+<section class="trends-header">
+    <h2>Consumption Trends</h2>
+    <p>{{ property_name }} &mdash; Last {{ months|length }} months</p>
+</section>
+
+{# Total consumption bar chart #}
+{% if months %}
+<section class="trends-chart">
+    <h3>Total Consumption (kWh)</h3>
+    <div class="bar-chart">
+        {% for m in months %}
+            <div class="bar-column">
+                <div class="bar-value">{{ m.total if m.total else "" }}</div>
+                <div class="bar-track">
+                    {% if max_total > 0 and m.total %}
+                        <div class="bar-fill" style="height: {{ (m.total / max_total * 100)|int }}%"></div>
+                    {% else %}
+                        <div class="bar-fill" style="height: 0%"></div>
+                    {% endif %}
+                </div>
+                <div class="bar-label">{{ m.label }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+{# Per-submeter breakdown for the latest month #}
+{% if latest_submeters %}
+<section class="trends-submeters">
+    <h3>By Submeter ({{ latest_month_label }})</h3>
+    {% for sub in latest_submeters %}
+        <div class="trend-submeter-row">
+            <div class="trend-submeter-info">
+                <span class="trend-submeter-dot" style="background: {{ sub.color }}"></span>
+                <span class="trend-submeter-name">{{ sub.name }}</span>
+                <span class="trend-submeter-kwh">{{ sub.consumption }} kWh</span>
+            </div>
+            <div class="horiz-bar-track">
+                {% if max_submeter > 0 %}
+                    <div class="horiz-bar-fill" style="width: {{ (sub.consumption / max_submeter * 100)|int }}%; background: {{ sub.color }}"></div>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+{# Month-over-month changes #}
+{% if mom_changes %}
+<section class="trends-mom">
+    <h3>Month-over-Month</h3>
+    {% for change in mom_changes %}
+        <div class="mom-row">
+            <span class="mom-name">{{ change.name }}</span>
+            <span class="mom-values">{{ change.prev }} &rarr; {{ change.curr }}</span>
+            {% if change.pct > 0 %}
+                <span class="mom-badge mom-up">&#9650; {{ change.pct }}%</span>
+            {% elif change.pct < 0 %}
+                <span class="mom-badge mom-down">&#9660; {{ change.pct|abs }}%</span>
+            {% else %}
+                <span class="mom-badge mom-flat">&mdash; 0%</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+{% else %}
+    <article class="cost-empty">
+        <p>No trend data available yet.</p>
+        <p><small>Record readings over multiple months to see trends.</small></p>
+    </article>
+{% endif %}
+
+<section class="cost-actions">
+    <a href="/costs?property_id={{ property_id }}" class="trend-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Costs
+    </a>
+</section>
+{% endblock %}

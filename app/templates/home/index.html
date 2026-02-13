@@ -33,36 +33,86 @@
     </section>
 
 {% else %}
-    {# Quick reading entry for authenticated users with defaults set #}
-    <section class="quick-entry">
-        <hgroup>
-            <h1>Quick Reading</h1>
-            <p>
-                {{ property.display_name }} &mdash;
-                {% if meter.name %}{{ meter.name }}{% else %}Main Meter{% endif %}
-            </p>
-        </hgroup>
-
+    {# Mobile-first home with action cards #}
+    <section class="home-header">
+        <p class="home-property-name">{{ property.display_name }}</p>
         {% if latest_reading and latest_reading.main_meter %}
-            <p class="last-reading">
-                Last reading: <strong>{{ latest_reading.main_meter }}</strong>
-                <small>({{ latest_reading.reading_timestamp.strftime('%Y-%m-%d %H:%M') }})</small>
+            <p class="home-last-reading">
+                Last: <strong>{{ latest_reading.main_meter }} kWh</strong>
+                <span class="home-reading-date">{{ latest_reading.reading_timestamp.strftime('%b %d, %Y') }}</span>
             </p>
+        {% else %}
+            <p class="home-last-reading">No readings yet</p>
         {% endif %}
+    </section>
 
-        <form method="post" action="/quick-reading" class="quick-form">
-            <fieldset role="group">
-                <input type="number" name="value" step="0.01" placeholder="Enter reading"
-                       required autofocus inputmode="decimal" class="large-input">
-                <button type="submit">Submit</button>
-            </fieldset>
-        </form>
+    {# Action cards #}
+    <section class="action-cards">
+        <article class="action-card" data-action="reading">
+            <div class="action-card-header" onclick="toggleActionCard('reading')">
+                <div class="action-card-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="action-card-text">
+                    <strong>Add Reading</strong>
+                    <small>Record current meter value</small>
+                </div>
+                <svg class="action-card-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="action-card-body" id="action-reading">
+                <form method="post" action="/quick-reading">
+                    <label for="reading-value">
+                        Meter value (kWh)
+                        <input type="number" id="reading-value" name="value" step="0.01"
+                               placeholder="e.g. 12345.67" required inputmode="decimal">
+                    </label>
+                    <button type="submit" class="action-submit">Save Reading</button>
+                </form>
+            </div>
+        </article>
 
-        <nav class="quick-links">
-            <a href="/readings/create">Add detailed reading</a>
-            <a href="/readings/bulk?property_id={{ property.id }}">Bulk entry</a>
-            <a href="/dashboard">View dashboard</a>
-        </nav>
+        <article class="action-card" data-action="consumption">
+            <div class="action-card-header" onclick="toggleActionCard('consumption')">
+                <div class="action-card-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                </div>
+                <div class="action-card-text">
+                    <strong>Log Consumption</strong>
+                    <small>Enter period usage for all meters</small>
+                </div>
+                <svg class="action-card-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="action-card-body" id="action-consumption">
+                <p class="action-hint">Record readings for all meters at once.</p>
+                <a href="/readings/bulk?property_id={{ property.id }}" role="button" class="action-submit outline">
+                    Open Bulk Entry
+                </a>
+            </div>
+        </article>
+
+        <article class="action-card" data-action="cost">
+            <div class="action-card-header" onclick="toggleActionCard('cost')">
+                <div class="action-card-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="action-card-text">
+                    <strong>Monthly Cost</strong>
+                    <small>Enter bill &amp; split costs</small>
+                </div>
+                <svg class="action-card-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="action-card-body" id="action-cost">
+                <form method="get" action="/costs">
+                    <input type="hidden" name="property_id" value="{{ property.id }}">
+                    <label for="cost-total">
+                        Total bill amount
+                        <input type="number" id="cost-total" name="total_cost" step="0.01"
+                               placeholder="e.g. 2450.00" required inputmode="decimal">
+                    </label>
+                    <button type="submit" class="action-submit">View Breakdown</button>
+                </form>
+            </div>
+        </article>
     </section>
 {% endif %}
 {% endblock %}

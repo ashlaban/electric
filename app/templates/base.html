@@ -8,13 +8,17 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
     {% block head_extra %}{% endblock %}
 </head>
-<body>
+<body {% if user %}class="has-bottom-tabs"{% endif %}>
     {% include "components/_navbar.html" %}
 
     <main class="container">
         {% include "components/_flash_messages.html" %}
         {% block content %}{% endblock %}
     </main>
+
+    {% if user %}
+        {% include "components/_bottom_tabs.html" %}
+    {% endif %}
 
     {% include "components/_footer.html" %}
 

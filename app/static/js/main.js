@@ -22,3 +22,26 @@ document.querySelectorAll('[data-confirm]').forEach(function(element) {
         }
     });
 });
+
+// Action card accordion toggle (home page)
+function toggleActionCard(action) {
+    var card = document.querySelector('[data-action="' + action + '"]');
+    if (!card) return;
+
+    var wasOpen = card.classList.contains('open');
+
+    // Close all cards
+    document.querySelectorAll('.action-card').forEach(function(c) {
+        c.classList.remove('open');
+    });
+
+    // Toggle the clicked card
+    if (!wasOpen) {
+        card.classList.add('open');
+        // Focus the first input in the opened card
+        var input = card.querySelector('input[type="number"]');
+        if (input) {
+            setTimeout(function() { input.focus(); }, 100);
+        }
+    }
+}
