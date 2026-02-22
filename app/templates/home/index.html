@@ -61,6 +61,13 @@
             </div>
             <div class="action-card-body" id="action-reading">
                 <form method="post" action="/quick-reading">
+                    <label for="reading-type">
+                        Reading type
+                        <select id="reading-type" name="reading_type">
+                            <option value="absolute" selected>Absolute (cumulative meter value)</option>
+                            <option value="relative">Relative (period consumption)</option>
+                        </select>
+                    </label>
                     <label for="reading-value">
                         Meter value (kWh)
                         <input type="number" id="reading-value" name="value" step="0.01"

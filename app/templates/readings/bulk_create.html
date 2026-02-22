@@ -32,6 +32,14 @@
         <form method="post" action="/readings/bulk">
             <input type="hidden" name="property_id" value="{{ selected_property.id }}">
 
+            <label for="reading_type">
+                Reading Type
+                <select id="reading_type" name="reading_type">
+                    <option value="absolute" selected>Absolute (cumulative meter values)</option>
+                    <option value="relative">Relative (period consumption)</option>
+                </select>
+            </label>
+
             <label for="reading_date">
                 Reading Date & Time
                 <input type="datetime-local" id="reading_date" name="reading_date">

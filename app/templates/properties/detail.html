@@ -13,6 +13,7 @@
 <p>
     <a href="/properties/{{ property.id }}/edit" role="button" class="outline">Edit Property</a>
     <a href="/readings/bulk?property_id={{ property.id }}" role="button">Add Readings</a>
+    <a href="/formulas?property_id={{ property.id }}" role="button" class="outline">Cost Formulas</a>
 </p>
 
 {% if latest_reading %}

@@ -34,6 +34,7 @@ class CostFormula(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     property_id: Mapped[int] = mapped_column(ForeignKey("properties.id"), index=True)
     name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
     terms_json: Mapped[str] = mapped_column(Text)  # JSON: {"meter_name": "coefficient"}
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(UTC))
     is_active: Mapped[bool] = mapped_column(default=True)

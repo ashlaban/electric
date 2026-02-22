@@ -44,6 +44,7 @@ def create_formula(
     formula = CostFormula(
         property_id=data.property_id,
         name=data.name,
+        description=data.description,
     )
     formula.set_terms(data.terms)
     db.add(formula)
@@ -104,6 +105,9 @@ def update_formula(
             )
         formula.name = data.name
 
+    if data.description is not None:
+        formula.description = data.description
+
     if data.terms is not None:
         formula.set_terms(data.terms)
 
@@ -128,6 +132,7 @@ def formula_to_response(formula: CostFormula) -> CostFormulaResponse:
         id=formula.id,
         property_id=formula.property_id,
         name=formula.name,
+        description=formula.description,
         terms=formula.get_terms(),
         created_at=formula.created_at,
         is_active=formula.is_active,
@@ -196,6 +201,7 @@ def distribute_costs(
             FormulaShareResult(
                 formula_id=formula.id,
                 name=formula.name,
+                description=formula.description,
                 terms=terms,
                 weighted_consumption=weighted,
                 cost=cost,

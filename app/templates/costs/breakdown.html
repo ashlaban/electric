@@ -33,6 +33,9 @@
             <article class="cost-card">
                 <div class="cost-card-header">
                     <strong>{{ share.name }}</strong>
+                    {% if share.description %}
+                        <small>{{ share.description }}</small>
+                    {% endif %}
                 </div>
                 <div class="cost-card-stats">
                     <span class="cost-kwh">{{ share.weighted_consumption }} kWh</span>
@@ -43,6 +46,25 @@
                 <div class="cost-bar-track">
                     <div class="cost-bar-fill" style="width: {{ "%.1f"|format(cost_share * 100) }}%"></div>
                 </div>
+                {# Per-meter consumption detail #}
+                {% if cost_data.meter_consumptions and share.terms %}
+                    <details class="cost-meter-detail">
+                        <summary><small>Meter breakdown</small></summary>
+                        <ul class="cost-meter-list">
+                            {% for meter_name, coeff in share.terms.items() %}
+                                {% set consumption = cost_data.meter_consumptions.get(meter_name, 0) %}
+                                <li>
+                                    {% if meter_name == "_unmetered" %}
+                                        Unmetered (common)
+                                    {% else %}
+                                        {{ meter_name }}
+                                    {% endif %}:
+                                    {{ consumption }} kWh &times; {{ coeff }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                {% endif %}
             </article>
         {% endfor %}
 
@@ -65,14 +87,34 @@
             </article>
         {% endif %}
     </section>
+{% elif error_reason == "no_formulas" %}
+    <article class="cost-empty">
+        <p>No cost formulas configured.</p>
+        <p><small>You need to create cost formulas before costs can be distributed.</small></p>
+        <p><a href="/formulas/create?property_id={{ property_id }}" role="button" class="outline">Create Cost Formula</a></p>
+    </article>
+{% elif error_reason == "no_readings" %}
+    <article class="cost-empty">
+        <p>No meter readings found for this period.</p>
+        <p><small>Record meter readings at the start and end of the billing period ({{ month_name }} {{ year }}).</small></p>
+        <p><a href="/readings/bulk?property_id={{ property_id }}" role="button" class="outline">Add Readings</a></p>
+    </article>
 {% else %}
     <article class="cost-empty">
         <p>No cost data available for this month.</p>
         <p><small>Make sure you have cost formulas configured and meter readings at the start and end of the period.</small></p>
+        <p>
+            <a href="/formulas?property_id={{ property_id }}" role="button" class="outline">Manage Formulas</a>
+        </p>
     </article>
 {% endif %}
 
 <section class="cost-actions">
+    <a href="/formulas?property_id={{ property_id }}" class="trend-link">
+        Manage Formulas
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <span style="margin: 0 0.75rem; color: var(--muted-color)">&middot;</span>
     <a href="/trends?property_id={{ property_id }}" class="trend-link">
         View Trends
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>

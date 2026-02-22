@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.models.enums import ReadingType
 from app.schemas.v2.readings import BulkReadingCreateV2, ReadingCreateV2
 from app.services.meter import get_meter, get_meters_for_property
 from app.services.property import get_properties_for_user, get_property
@@ -129,6 +130,7 @@ async def create_reading_submit(
     meter_id: int = Form(...),
     value: Decimal = Form(...),
     reading_date: str = Form(None),
+    reading_type: str = Form("absolute"),
     db: Session = Depends(get_db),
 ) -> HTMLResponse | RedirectResponse:
     """Process create reading form."""
@@ -142,10 +144,17 @@ async def create_reading_submit(
     else:
         timestamp = datetime.now(UTC)
 
+    r_type = (
+        ReadingType(reading_type)
+        if reading_type in ("absolute", "relative")
+        else ReadingType.ABSOLUTE
+    )
+
     reading_data = ReadingCreateV2(
         meter_id=meter_id,
         value=value,
         reading_timestamp=timestamp,
+        reading_type=r_type,
     )
 
     create_reading(db, reading_data, user_id=user.id)
@@ -220,9 +229,17 @@ async def bulk_reading_submit(
             name = key.replace("submeter_", "")
             submeter_readings[name] = Decimal(str(value))
 
+    reading_type_str = str(form_data.get("reading_type", "absolute"))
+    r_type = (
+        ReadingType(reading_type_str)
+        if reading_type_str in ("absolute", "relative")
+        else ReadingType.ABSOLUTE
+    )
+
     bulk_data = BulkReadingCreateV2(
         property_id=property_id,
         reading_timestamp=timestamp,
+        reading_type=r_type,
         main_meter_value=main_meter_value,
         submeter_readings=submeter_readings,
     )

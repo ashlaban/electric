@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Create Formula - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Create Cost Formula</h1>
+    <p>{{ property.display_name }} &mdash; Define a cost allocation rule.</p>
+</hgroup>
+
+<article>
+    <form method="post" action="/formulas/create" id="formula-form">
+        <input type="hidden" name="property_id" value="{{ property_id }}">
+
+        <label for="name">
+            Formula Name
+            <input type="text" id="name" name="name" placeholder="e.g. Tenant 1" required>
+            <small>A name to identify this cost share (e.g. tenant name or unit number).</small>
+        </label>
+
+        <label for="description">
+            Description / Location (optional)
+            <input type="text" id="description" name="description" placeholder="e.g. Apartment 2B, second floor">
+            <small>Location or description for context on cost breakdown cards.</small>
+        </label>
+
+        <hr>
+
+        <p><strong>Terms</strong></p>
+        <p><small>Each term maps a meter to a coefficient. The formula computes:<br>
+            cost = total_bill &times; sum(coefficient &times; meter_consumption) / main_meter_consumption</small></p>
+
+        <div id="terms-container">
+            <div class="term-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <select name="term_meter_0" style="flex: 2" required>
+                    <option value="">Select meter...</option>
+                    {% for meter in meters %}
+                        {% if meter.meter_type.value != 'main_meter' %}
+                            <option value="{{ meter.name }}">{{ meter.name }}{% if meter.location %} ({{ meter.location }}){% endif %}</option>
+                        {% endif %}
+                    {% endfor %}
+                    <option value="_unmetered">Unmetered (common area)</option>
+                </select>
+                <input type="number" name="term_coeff_0" step="0.01" min="0" placeholder="Coefficient" value="1.0" style="flex: 1" required>
+            </div>
+        </div>
+
+        <button type="button" class="outline" onclick="addTerm()" style="margin-bottom: 1rem">
+            + Add Term
+        </button>
+
+        <button type="submit">Create Formula</button>
+    </form>
+</article>
+
+<p><a href="/formulas?property_id={{ property_id }}">&larr; Back to Formulas</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let termCount = 1;
+
+function addTerm() {
+    const container = document.getElementById('terms-container');
+    const row = document.createElement('div');
+    row.className = 'term-row';
+    row.style.cssText = 'display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;';
+
+    const select = document.querySelector('select[name="term_meter_0"]');
+    const newSelect = select.cloneNode(true);
+    newSelect.name = `term_meter_${termCount}`;
+    newSelect.value = '';
+    newSelect.style.flex = '2';
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.name = `term_coeff_${termCount}`;
+    input.step = '0.01';
+    input.min = '0';
+    input.placeholder = 'Coefficient';
+    input.value = '1.0';
+    input.style.flex = '1';
+    input.required = true;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.className = 'outline secondary';
+    removeBtn.style.cssText = 'padding: 0.25rem 0.5rem; margin: 0; flex-shrink: 0;';
+    removeBtn.onclick = function() { row.remove(); };
+
+    row.appendChild(newSelect);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+    termCount++;
+}
+</script>
+{% endblock %}

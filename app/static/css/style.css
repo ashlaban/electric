@@ -558,6 +558,43 @@ body.has-bottom-tabs footer {
     background: var(--muted-border-color);
 }
 
+/* Unmetered consumption in trends */
+.trends-unmetered {
+    max-width: 500px;
+    margin: 1.5rem auto;
+}
+
+.trends-unmetered h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.bar-fill-unmetered {
+    background: var(--secondary);
+    opacity: 0.7;
+}
+
+/* Cost meter detail (per-meter breakdown in cost cards) */
+.cost-meter-detail {
+    margin-top: 0.5rem;
+}
+
+.cost-meter-detail summary {
+    cursor: pointer;
+    color: var(--muted-color);
+}
+
+.cost-meter-list {
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--muted-color);
+}
+
+.cost-meter-list li {
+    margin-bottom: 0.15rem;
+}
+
 /* ============================================================
    Stats (dashboard)
    ============================================================ */

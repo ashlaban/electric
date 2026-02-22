@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.models.enums import ReadingType
 from app.schemas.v2.readings import ReadingCreateV2
 from app.services.meter import get_meter
 from app.services.property import get_properties_for_user, get_property
@@ -70,6 +71,7 @@ async def home(
 async def quick_reading(
     request: Request,
     value: Decimal = Form(...),
+    reading_type: str = Form("absolute"),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     """Submit a quick meter reading."""
@@ -79,10 +81,17 @@ async def quick_reading(
         add_flash_message(request, "Please set up your default meter first.", "error")
         return RedirectResponse("/profile/edit", status_code=303)
 
+    r_type = (
+        ReadingType(reading_type)
+        if reading_type in ("absolute", "relative")
+        else ReadingType.ABSOLUTE
+    )
+
     reading_data = ReadingCreateV2(
         meter_id=user.default_meter_id,
         value=value,
         reading_timestamp=datetime.now(UTC),
+        reading_type=r_type,
     )
 
     create_reading(db, reading_data, user_id=user.id)

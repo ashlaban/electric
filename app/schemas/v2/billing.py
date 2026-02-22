@@ -17,6 +17,7 @@ class CostFormulaCreate(BaseModel):
 
     property_id: int
     name: str
+    description: str | None = None
     terms: dict[str, Decimal]
 
     @field_validator("terms")
@@ -35,6 +36,7 @@ class CostFormulaUpdate(BaseModel):
     """Schema for updating a cost allocation formula."""
 
     name: str | None = None
+    description: str | None = None
     terms: dict[str, Decimal] | None = None
     is_active: bool | None = None
 
@@ -57,6 +59,7 @@ class CostFormulaResponse(BaseModel):
     id: int
     property_id: int
     name: str
+    description: str | None = None
     terms: dict[str, Decimal]
     created_at: datetime
     is_active: bool
@@ -67,6 +70,7 @@ class FormulaShareResult(BaseModel):
 
     formula_id: int
     name: str
+    description: str | None = None
     terms: dict[str, Decimal]
     weighted_consumption: Decimal
     cost: Decimal

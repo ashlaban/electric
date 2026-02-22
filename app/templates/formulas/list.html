@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Cost Formulas - Electric{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Cost Formulas</h1>
+    <p>{{ property.display_name }} &mdash; Define how costs are split between tenants.</p>
+</hgroup>
+
+<p>
+    <a href="/formulas/create?property_id={{ property_id }}" role="button">Add Formula</a>
+    <a href="/properties/{{ property_id }}" role="button" class="outline">Back to Property</a>
+</p>
+
+{% if formulas %}
+    {% for formula in formulas %}
+        <article {% if not formula.is_active %}style="opacity: 0.5"{% endif %}>
+            <header>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <div>
+                        <strong>{{ formula.name }}</strong>
+                        {% if not formula.is_active %}
+                            <mark style="margin-left: 0.5rem">Inactive</mark>
+                        {% endif %}
+                    </div>
+                    {% if formula.is_active %}
+                        <small>
+                            <a href="/formulas/{{ formula.id }}/edit">Edit</a>
+                        </small>
+                    {% endif %}
+                </div>
+                {% if formula.description %}
+                    <small style="color: var(--muted-color)">{{ formula.description }}</small>
+                {% endif %}
+            </header>
+
+            <p><strong>Terms:</strong></p>
+            <ul>
+                {% for meter_name, coeff in formula.terms.items() %}
+                    <li>
+                        {% if meter_name == "_unmetered" %}
+                            Unmetered (common)
+                        {% else %}
+                            {{ meter_name }}
+                        {% endif %}
+                        &times; {{ coeff }}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <small style="color: var(--muted-color)">
+                Created {{ formula.created_at.strftime('%Y-%m-%d') }}
+            </small>
+
+            {% if formula.is_active %}
+                <footer>
+                    <form method="post" action="/formulas/{{ formula.id }}/delete"
+                          onsubmit="return confirm('Deactivate this formula?');"
+                          style="margin: 0">
+                        <button type="submit" class="outline secondary" style="margin: 0; padding: 0.25rem 0.75rem; font-size: 0.85rem">
+                            Deactivate
+                        </button>
+                    </form>
+                </footer>
+            {% endif %}
+        </article>
+    {% endfor %}
+{% else %}
+    <article class="cost-empty">
+        <p>No cost formulas configured for this property.</p>
+        <p><small>Create a formula to define how electricity costs are split between tenants.</small></p>
+    </article>
+{% endif %}
+{% endblock %}

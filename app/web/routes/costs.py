@@ -4,7 +4,7 @@ import calendar
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -90,11 +90,20 @@ async def cost_breakdown(
     cost_decimal = Decimal(str(total_cost)) if total_cost else Decimal("0")
 
     cost_data = None
+    error_reason = None
     if cost_decimal > 0:
         try:
             cost_data = distribute_costs(db, property_id, start, end, cost_decimal)
+        except HTTPException as e:
+            detail = e.detail if isinstance(e.detail, str) else str(e.detail)
+            if "No active cost formulas" in detail:
+                error_reason = "no_formulas"
+            elif "zero or unavailable" in detail:
+                error_reason = "no_readings"
+            else:
+                error_reason = "unknown"
         except Exception:
-            cost_data = None
+            error_reason = "unknown"
 
     prev_y, prev_m = _prev_month(year, month)
     next_y, next_m = _next_month(year, month)
@@ -116,6 +125,7 @@ async def cost_breakdown(
             "next_year": next_y,
             "next_month": next_m,
             "cost_data": cost_data,
+            "error_reason": error_reason,
         },
     )
 
@@ -159,6 +169,7 @@ async def trends_overview(
             consumption = get_property_consumption(db, property_id, start, end)
             total = float(consumption.main_meter_consumption or 0)
             real_submeters = [s for s in consumption.submeters if not s.is_virtual]
+            unmetered = float(consumption.unmetered_consumption or 0)
             months_data.append(
                 {
                     "label": label,
@@ -166,6 +177,7 @@ async def trends_overview(
                     "year": y,
                     "month": m,
                     "submeters": real_submeters,
+                    "unmetered": round(unmetered, 1),
                 }
             )
             for sub in real_submeters:
@@ -185,6 +197,7 @@ async def trends_overview(
                     "year": y,
                     "month": m,
                     "submeters": [],
+                    "unmetered": 0,
                 }
             )
 

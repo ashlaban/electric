@@ -50,6 +50,31 @@
 </section>
 {% endif %}
 
+{# Unmetered consumption over time #}
+{% set has_unmetered = months | selectattr("unmetered") | list | length > 0 %}
+{% if has_unmetered %}
+<section class="trends-unmetered">
+    <h3>Unmetered Consumption (kWh)</h3>
+    <p><small style="color: var(--muted-color)">Electricity not accounted for by submeters (common areas, losses).</small></p>
+    {% set max_unmetered = months | map(attribute="unmetered") | max %}
+    <div class="bar-chart">
+        {% for m in months %}
+            <div class="bar-column">
+                <div class="bar-value">{{ m.unmetered if m.unmetered else "" }}</div>
+                <div class="bar-track">
+                    {% if max_unmetered > 0 and m.unmetered %}
+                        <div class="bar-fill bar-fill-unmetered" style="height: {{ (m.unmetered / max_unmetered * 100)|int }}%"></div>
+                    {% else %}
+                        <div class="bar-fill bar-fill-unmetered" style="height: 0%"></div>
+                    {% endif %}
+                </div>
+                <div class="bar-label">{{ m.label }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 {# Month-over-month changes #}
 {% if mom_changes %}
 <section class="trends-mom">

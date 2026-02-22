@@ -2,7 +2,17 @@
 
 from fastapi import APIRouter
 
-from app.web.routes import auth, costs, dashboard, home, meters, profile, properties, readings
+from app.web.routes import (
+    auth,
+    costs,
+    dashboard,
+    formulas,
+    home,
+    meters,
+    profile,
+    properties,
+    readings,
+)
 
 web_router = APIRouter()
 
@@ -14,3 +24,4 @@ web_router.include_router(properties.router, prefix="/properties", tags=["web-pr
 web_router.include_router(meters.router, prefix="/meters", tags=["web-meters"])
 web_router.include_router(readings.router, prefix="/readings", tags=["web-readings"])
 web_router.include_router(profile.router, prefix="/profile", tags=["web-profile"])
+web_router.include_router(formulas.router, prefix="/formulas", tags=["web-formulas"])
