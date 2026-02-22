@@ -9,12 +9,15 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import auth, health, meters, properties, readings
+from app.api.v2.routes import billing as v2_billing
+from app.api.v2.routes import readings as v2_readings
 from app.core.config import settings
 from app.core.database import Base, engine
 
 # Import models for Base.metadata.create_all - order matters for foreign keys
 from app.models import (
     associations,  # noqa: F401
+    cost_formula,  # noqa: F401
     meter,  # noqa: F401
     meter_reading,  # noqa: F401
     property,  # noqa: F401
@@ -61,6 +64,10 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(properties.router, prefix="/api")
 app.include_router(meters.router, prefix="/api")
 app.include_router(readings.router, prefix="/api")
+
+# Include v2 API routers
+app.include_router(v2_readings.router, prefix="/api/v2")
+app.include_router(v2_billing.router, prefix="/api/v2")
 
 # Include web routes (Jinja2 frontend)
 app.include_router(web_router)
