@@ -26,24 +26,22 @@
     {% endif %}
 </section>
 
-{% if cost_data and cost_data.submeters %}
+{% if cost_data and cost_data.shares %}
     <section class="cost-breakdown">
-        {% for sub in cost_data.submeters %}
+        {% for share in cost_data.shares %}
+            {% set cost_share = (share.cost / cost_data.total_cost) if cost_data.total_cost > 0 else 0 %}
             <article class="cost-card">
                 <div class="cost-card-header">
-                    <strong>{{ sub.name }}</strong>
-                    {% if sub.location %}
-                        <small>{{ sub.location }}</small>
-                    {% endif %}
+                    <strong>{{ share.name }}</strong>
                 </div>
                 <div class="cost-card-stats">
-                    <span class="cost-kwh">{{ sub.total_consumption }} kWh</span>
+                    <span class="cost-kwh">{{ share.weighted_consumption }} kWh</span>
                     <span class="cost-dot">&middot;</span>
-                    <span class="cost-pct">{{ "%.0f"|format(sub.consumption_share * 100) }}%</span>
+                    <span class="cost-pct">{{ "%.0f"|format(cost_share * 100) }}%</span>
                 </div>
-                <div class="cost-card-amount">{{ "%.2f"|format(sub.cost) }} kr</div>
+                <div class="cost-card-amount">{{ "%.2f"|format(share.cost) }} kr</div>
                 <div class="cost-bar-track">
-                    <div class="cost-bar-fill" style="width: {{ "%.1f"|format(sub.consumption_share * 100) }}%"></div>
+                    <div class="cost-bar-fill" style="width: {{ "%.1f"|format(cost_share * 100) }}%"></div>
                 </div>
             </article>
         {% endfor %}
@@ -70,7 +68,7 @@
 {% else %}
     <article class="cost-empty">
         <p>No cost data available for this month.</p>
-        <p><small>Make sure you have meter readings at the start and end of the period.</small></p>
+        <p><small>Make sure you have cost formulas configured and meter readings at the start and end of the period.</small></p>
     </article>
 {% endif %}
 

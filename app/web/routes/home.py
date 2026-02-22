@@ -8,10 +8,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.meter_reading import MeterReadingCreate
+from app.schemas.v2.readings import ReadingCreateV2
 from app.services.meter import get_meter
-from app.services.meter_reading import create_reading, get_latest_readings_for_property
 from app.services.property import get_properties_for_user, get_property
+from app.services.v2.readings import create_reading, get_latest_readings_for_property
 from app.web.dependencies import add_flash_message, get_current_user_from_session
 from app.web.template_config import templates
 
@@ -79,7 +79,7 @@ async def quick_reading(
         add_flash_message(request, "Please set up your default meter first.", "error")
         return RedirectResponse("/profile/edit", status_code=303)
 
-    reading_data = MeterReadingCreate(
+    reading_data = ReadingCreateV2(
         meter_id=user.default_meter_id,
         value=value,
         reading_timestamp=datetime.now(UTC),

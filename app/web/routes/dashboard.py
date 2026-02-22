@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.meter_reading import MeterReading
 from app.services.meter import get_meters_for_property
-from app.services.meter_reading import get_latest_readings_for_property
 from app.services.property import get_properties_for_user
+from app.services.v2.readings import get_latest_readings_for_property
 from app.web.dependencies import get_current_user_from_session
 from app.web.template_config import templates
 

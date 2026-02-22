@@ -9,8 +9,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.services.meter_reading import distribute_costs, get_property_consumption
 from app.services.property import get_properties_for_user, get_property
+from app.services.v2.billing import distribute_costs
+from app.services.v2.readings import get_property_consumption
 from app.web.dependencies import add_flash_message, get_current_user_from_session
 from app.web.template_config import templates
 
@@ -157,16 +158,17 @@ async def trends_overview(
         try:
             consumption = get_property_consumption(db, property_id, start, end)
             total = float(consumption.main_meter_consumption or 0)
+            real_submeters = [s for s in consumption.submeters if not s.is_virtual]
             months_data.append(
                 {
                     "label": label,
                     "total": round(total, 1) if total else 0,
                     "year": y,
                     "month": m,
-                    "submeters": consumption.submeters,
+                    "submeters": real_submeters,
                 }
             )
-            for sub in consumption.submeters:
+            for sub in real_submeters:
                 if sub.name not in all_submeter_data:
                     all_submeter_data[sub.name] = []
                 all_submeter_data[sub.name].append(

@@ -8,14 +8,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.meter_reading import MeterReadingBulkCreate, MeterReadingCreate
+from app.schemas.v2.readings import BulkReadingCreateV2, ReadingCreateV2
 from app.services.meter import get_meter, get_meters_for_property
-from app.services.meter_reading import (
+from app.services.property import get_properties_for_user, get_property
+from app.services.v2.readings import (
     create_bulk_readings,
     create_reading,
     get_readings_history,
 )
-from app.services.property import get_properties_for_user, get_property
 from app.web.dependencies import add_flash_message, get_current_user_from_session
 from app.web.template_config import templates
 
@@ -142,7 +142,7 @@ async def create_reading_submit(
     else:
         timestamp = datetime.now(UTC)
 
-    reading_data = MeterReadingCreate(
+    reading_data = ReadingCreateV2(
         meter_id=meter_id,
         value=value,
         reading_timestamp=timestamp,
@@ -220,7 +220,7 @@ async def bulk_reading_submit(
             name = key.replace("submeter_", "")
             submeter_readings[name] = Decimal(str(value))
 
-    bulk_data = MeterReadingBulkCreate(
+    bulk_data = BulkReadingCreateV2(
         property_id=property_id,
         reading_timestamp=timestamp,
         main_meter_value=main_meter_value,
