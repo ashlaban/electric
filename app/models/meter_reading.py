@@ -4,10 +4,11 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.models.enums import ReadingType
 
 if TYPE_CHECKING:
     from app.models.meter import Meter
@@ -30,6 +31,9 @@ class MeterReading(Base):
 
     # The actual reading value (using Decimal for precision)
     value: Mapped[Decimal] = mapped_column(Numeric(precision=12, scale=3))
+
+    # Reading type: absolute (cumulative) or relative (period consumption)
+    reading_type: Mapped[str] = mapped_column(String(20), default=ReadingType.ABSOLUTE, index=True)
 
     # Foreign keys
     meter_id: Mapped[int] = mapped_column(ForeignKey("meters.id"), index=True)
